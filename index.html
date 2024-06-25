@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Sesión</title>
-    <link rel="stylesheet" href="index.html">
+    <link rel="stylesheet" href="login.css">
 </head>
 <body>
     <div class="login-container">
@@ -12,6 +12,7 @@
         <form id="login-form">
             <label for="role">Seleccione su rol:</label>
             <select id="role" name="role" required>
+                <option value="" disabled selected>Seleccione su rol</option>
                 <option value="administracion">Administración</option>
                 <option value="encargado">Encargado</option>
             </select>
@@ -19,12 +20,14 @@
             <input type="password" id="password" name="password" required>
             <button type="submit">Ingresar</button>
         </form>
+        <div class="error" id="error-message">Contraseña incorrecta para el rol seleccionado.</div>
     </div>
     <script>
         document.getElementById('login-form').addEventListener('submit', function(event) {
             event.preventDefault();
             const role = document.getElementById('role').value;
             const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('error-message');
             
             if ((role === 'administracion' && password === '0') || (role === 'encargado' && password === '1')) {
                 if (role === 'administracion') {
@@ -33,7 +36,7 @@
                     window.location.href = 'CuadreEncargado.html';
                 }
             } else {
-                alert('Contraseña incorrecta para el rol seleccionado.');
+                errorMessage.style.display = 'block';
             }
         });
     </script>
