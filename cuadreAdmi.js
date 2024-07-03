@@ -1,15 +1,209 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     const { jsPDF } = window.jspdf;
+    const db = firebase.firestore();
 
     const calculateTotal = (ids) => ids.reduce((total, id) => total + parseFloat(document.getElementById(id)?.value || 0), 0);
 
-    window.updateTotals = function() {
+    window.updateTotals = function () {
         updateSistemaTotals();
-        updateControlAdministrativo();
+        updateCajaTotals();
         updateEncargado();
         updateDiferencia();
         updateGastos();
         updateCuadroDatos();
+    };
+
+    async function fetchCuadres() {
+        const querySnapshot = await db.collection("cuadres").get();
+        const cuadresTarjetas = document.getElementById('cuadres-tarjetas');
+        cuadresTarjetas.innerHTML = '';
+
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            const card = document.createElement('div');
+            card.className = 'cuadre-card';
+            card.innerHTML = `
+                <h3>ID Cuadre: ${doc.id} - ${data.sucursal}</h3>
+                <p>Fecha: ${data.fechaCuadre}</p>
+                <button onclick="mostrarCuadre('${doc.id}')">Mostrar Cuadre</button>
+                <button onclick="realizarCuadre('${doc.id}')">Realizar Cuadre</button>
+            `;
+            cuadresTarjetas.appendChild(card);
+        });
+    }
+
+    window.mostrarCuadre = async (id) => {
+        const docRef = db.collection("cuadres").doc(id);
+        const docSnap = await docRef.get();
+
+        if (docSnap.exists) {
+            const data = docSnap.data();
+            document.getElementById('id-cuadre').value = id;
+            document.getElementById('nombre-sucursal').value = data.sucursal || '';
+            document.getElementById('fecha-hoy').value = data.fechaCuadre || '';
+
+            document.getElementById('caja1-venta-efectivo').value = data.caja1_venta_efectivo || 0;
+            document.getElementById('caja1-venta-tarjeta').value = data.caja1_venta_tarjeta || 0;
+            document.getElementById('caja1-motorista').value = data.caja1_motorista || 0;
+            document.getElementById('caja1-pedidos-ya').value = data.caja1_pedidos_ya || 0;
+            document.getElementById('caja2-venta-efectivo').value = data.caja2_venta_efectivo || 0;
+            document.getElementById('caja2-venta-tarjeta').value = data.caja2_venta_tarjeta || 0;
+            document.getElementById('caja2-motorista').value = data.caja2_motorista || 0;
+            document.getElementById('caja2-pedidos-ya').value = data.caja2_pedidos_ya || 0;
+            document.getElementById('caja3-venta-efectivo').value = data.caja3_venta_efectivo || 0;
+            document.getElementById('caja3-venta-tarjeta').value = data.caja3_venta_tarjeta || 0;
+            document.getElementById('caja3-motorista').value = data.caja3_motorista || 0;
+            document.getElementById('caja3-pedidos-ya').value = data.caja3_pedidos_ya || 0;
+
+            // Cargar datos de caja ingresados por el encargado
+            document.getElementById('caja1-100').value = data.caja1_100 || 0;
+            document.getElementById('caja1-50').value = data.caja1_50 || 0;
+            document.getElementById('caja1-20').value = data.caja1_20 || 0;
+            document.getElementById('caja1-10').value = data.caja1_10 || 0;
+            document.getElementById('caja1-5').value = data.caja1_5 || 0;
+            document.getElementById('caja1-1').value = data.caja1_1 || 0;
+            document.getElementById('caja1-apertura').value = data.caja1_apertura || 0;
+            document.getElementById('caja1-tarjeta-admin').value = data.caja1_tarjeta_admin || 0;
+            document.getElementById('caja1-motorista-admin').value = data.caja1_motorista_admin || 0;
+            document.getElementById('caja1-total-efectivo').value = data.caja1_total_efectivo || 0;
+            document.getElementById('caja1-total-venta-cajero').value = data.caja1_total_venta_cajero || 0;
+
+            document.getElementById('caja2-100').value = data.caja2_100 || 0;
+            document.getElementById('caja2-50').value = data.caja2_50 || 0;
+            document.getElementById('caja2-20').value = data.caja2_20 || 0;
+            document.getElementById('caja2-10').value = data.caja2_10 || 0;
+            document.getElementById('caja2-5').value = data.caja2_5 || 0;
+            document.getElementById('caja2-1').value = data.caja2_1 || 0;
+            document.getElementById('caja2-apertura').value = data.caja2_apertura || 0;
+            document.getElementById('caja2-tarjeta-admin').value = data.caja2_tarjeta_admin || 0;
+            document.getElementById('caja2-motorista-admin').value = data.caja2_motorista_admin || 0;
+            document.getElementById('caja2-total-efectivo').value = data.caja2_total_efectivo || 0;
+            document.getElementById('caja2-total-venta-cajero').value = data.caja2_total_venta_cajero || 0;
+
+            document.getElementById('caja3-100').value = data.caja3_100 || 0;
+            document.getElementById('caja3-50').value = data.caja3_50 || 0;
+            document.getElementById('caja3-20').value = data.caja3_20 || 0;
+            document.getElementById('caja3-10').value = data.caja3_10 || 0;
+            document.getElementById('caja3-5').value = data.caja3_5 || 0;
+            document.getElementById('caja3-1').value = data.caja3_1 || 0;
+            document.getElementById('caja3-apertura').value = data.caja3_apertura || 0;
+            document.getElementById('caja3-tarjeta-admin').value = data.caja3_tarjeta_admin || 0;
+            document.getElementById('caja3-motorista-admin').value = data.caja3_motorista_admin || 0;
+            document.getElementById('caja3-total-efectivo').value = data.caja3_total_efectivo || 0;
+            document.getElementById('caja3-total-venta-cajero').value = data.caja3_total_venta_cajero || 0;
+
+            document.getElementById('cuadres-realizados-content').style.display = 'none';
+            document.getElementById('cuadre-content').style.display = 'block';
+
+            updateTotals();
+        } else {
+            alert("No se encontró el cuadre");
+        }
+    };
+
+    window.realizarCuadre = async (id) => {
+        const docRef = db.collection("cuadres").doc(id);
+        const docSnap = await docRef.get();
+
+        if (docSnap.exists) {
+            const data = docSnap.data();
+            document.getElementById('id-cuadre').value = id;
+            document.getElementById('nombre-sucursal').value = data.sucursal || '';
+            document.getElementById('fecha-hoy').value = data.fechaCuadre || '';
+
+            document.getElementById('caja1-venta-efectivo').value = data.caja1_venta_efectivo || 0;
+            document.getElementById('caja1-venta-tarjeta').value = data.caja1_venta_tarjeta || 0;
+            document.getElementById('caja1-motorista').value = data.caja1_motorista || 0;
+            document.getElementById('caja1-pedidos-ya').value = data.caja1_pedidos_ya || 0;
+            document.getElementById('caja2-venta-efectivo').value = data.caja2_venta_efectivo || 0;
+            document.getElementById('caja2-venta-tarjeta').value = data.caja2_venta_tarjeta || 0;
+            document.getElementById('caja2-motorista').value = data.caja2_motorista || 0;
+            document.getElementById('caja2-pedidos-ya').value = data.caja2_pedidos_ya || 0;
+            document.getElementById('caja3-venta-efectivo').value = data.caja3_venta_efectivo || 0;
+            document.getElementById('caja3-venta-tarjeta').value = data.caja3_venta_tarjeta || 0;
+            document.getElementById('caja3-motorista').value = data.caja3_motorista || 0;
+            document.getElementById('caja3-pedidos-ya').value = data.caja3_pedidos_ya || 0;
+
+            // Cargar datos de caja ingresados por el encargado
+            document.getElementById('caja1-100').value = data.caja1_100 || 0;
+            document.getElementById('caja1-50').value = data.caja1_50 || 0;
+            document.getElementById('caja1-20').value = data.caja1_20 || 0;
+            document.getElementById('caja1-10').value = data.caja1_10 || 0;
+            document.getElementById('caja1-5').value = data.caja1_5 || 0;
+            document.getElementById('caja1-1').value = data.caja1_1 || 0;
+            document.getElementById('caja1-apertura').value = data.caja1_apertura || 0;
+            document.getElementById('caja1-tarjeta-admin').value = data.caja1_tarjeta_admin || 0;
+            document.getElementById('caja1-motorista-admin').value = data.caja1_motorista_admin || 0;
+            document.getElementById('caja1-total-efectivo').value = data.caja1_total_efectivo || 0;
+            document.getElementById('caja1-total-venta-cajero').value = data.caja1_total_venta_cajero || 0;
+
+            document.getElementById('caja2-100').value = data.caja2_100 || 0;
+            document.getElementById('caja2-50').value = data.caja2_50 || 0;
+            document.getElementById('caja2-20').value = data.caja2_20 || 0;
+            document.getElementById('caja2-10').value = data.caja2_10 || 0;
+            document.getElementById('caja2-5').value = data.caja2_5 || 0;
+            document.getElementById('caja2-1').value = data.caja2_1 || 0;
+            document.getElementById('caja2-apertura').value = data.caja2_apertura || 0;
+            document.getElementById('caja2-tarjeta-admin').value = data.caja2_tarjeta_admin || 0;
+            document.getElementById('caja2-motorista-admin').value = data.caja2_motorista_admin || 0;
+            document.getElementById('caja2-total-efectivo').value = data.caja2_total_efectivo || 0;
+            document.getElementById('caja2-total-venta-cajero').value = data.caja2_total_venta_cajero || 0;
+
+            document.getElementById('caja3-100').value = data.caja3_100 || 0;
+            document.getElementById('caja3-50').value = data.caja3_50 || 0;
+            document.getElementById('caja3-20').value = data.caja3_20 || 0;
+            document.getElementById('caja3-10').value = data.caja3_10 || 0;
+            document.getElementById('caja3-5').value = data.caja3_5 || 0;
+            document.getElementById('caja3-1').value = data.caja3_1 || 0;
+            document.getElementById('caja3-apertura').value = data.caja3_apertura || 0;
+            document.getElementById('caja3-tarjeta-admin').value = data.caja3_tarjeta_admin || 0;
+            document.getElementById('caja3-motorista-admin').value = data.caja3_motorista_admin || 0;
+            document.getElementById('caja3-total-efectivo').value = data.caja3_total_efectivo || 0;
+            document.getElementById('caja3-total-venta-cajero').value = data.caja3_total_venta_cajero || 0;
+
+            document.getElementById('cuadres-realizados-content').style.display = 'none';
+            document.getElementById('cuadre-content').style.display = 'block';
+
+            updateTotals();
+        } else {
+            alert("No se encontró el cuadre");
+        }
+    };
+
+    document.getElementById('cuadres-realizados-btn').addEventListener('click', async () => {
+        await fetchCuadres();
+        document.getElementById('cuadres-realizados-content').style.display = 'block';
+        document.getElementById('cuadre-content').style.display = 'none';
+    });
+
+    document.getElementById('nuevo-cuadre-btn').addEventListener('click', () => {
+        document.getElementById('cuadres-realizados-content').style.display = 'none';
+        document.getElementById('cuadre-content').style.display = 'block';
+        document.getElementById('cuadre-form').reset();
+    });
+
+    document.getElementById('reportes-btn').addEventListener('click', async () => {
+        document.getElementById('cuadres-realizados-content').style.display = 'none';
+        document.getElementById('cuadre-content').style.display = 'none';
+        document.getElementById('reportes-content').style.display = 'block';
+        await cargarSucursales();
+    });
+
+    async function cargarSucursales() {
+        const sucursalSelect = document.getElementById('reporte-sucursal');
+        sucursalSelect.innerHTML = '<option value="general">General</option>';
+        const querySnapshot = await db.collection("cuadres").get();
+        const sucursales = new Set();
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            sucursales.add(data.sucursal);
+        });
+        sucursales.forEach(sucursal => {
+            const option = document.createElement('option');
+            option.value = sucursal;
+            option.textContent = sucursal;
+            sucursalSelect.appendChild(option);
+        });
     }
 
     function updateSistemaTotals() {
@@ -41,7 +235,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (totalSistemaElem) totalSistemaElem.value = (totalVentaEfectivo + totalVentaTarjeta + totalMotorista + totalPedidosYa).toFixed(2);
     }
 
-    function updateControlAdministrativo() {
+    function updateCajaTotals() {
         for (let i = 1; i <= 3; i++) {
             const totalEfectivo = calculateTotal([
                 `caja${i}-100`, `caja${i}-50`, `caja${i}-20`, `caja${i}-10`, `caja${i}-5`, `caja${i}-1`
@@ -151,13 +345,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const downloadPdfBtn = document.getElementById("download-cuadro-pdf");
     const downloadImgBtn = document.getElementById("download-cuadro-img");
-    const downloadPagePdfBtn = document.getElementById("download-pdf");
 
     const generateFileName = () => {
         const sucursal = document.getElementById('nombre-sucursal').value || 'sucursal';
         const fechaHoy = document.getElementById('fecha-hoy').value;
         return `cuadre-${sucursal}-${fechaHoy}`;
-    }
+    };
 
     if (downloadPdfBtn) {
         downloadPdfBtn.addEventListener("click", () => {
@@ -188,16 +381,69 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    if (downloadPagePdfBtn) {
-        downloadPagePdfBtn.addEventListener("click", () => {
-            html2canvas(document.querySelector("#content"), { scale: 2 }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const pdf = new jsPDF();
-                pdf.addImage(imgData, 'PNG', 0, 0, 210, 297); // Adjusted for A4 size
-                pdf.save(`cuadre-pagina-completa-${generateFileName()}.pdf`);
+    document.getElementById('cerrar-cuadre-btn').addEventListener('click', async () => {
+        const idCuadre = document.getElementById('id-cuadre').value;
+        if (idCuadre) {
+            await db.collection("cuadres").doc(idCuadre).update({
+                cerrado: true
+            });
+            alert("Cuadre cerrado correctamente");
+            document.getElementById('cuadre-content').style.display = 'none';
+        }
+    });
+
+    document.getElementById('generar-reporte-btn').addEventListener('click', async () => {
+        const fechaInicio = document.getElementById('reporte-fecha-inicio').value;
+        const fechaFin = document.getElementById('reporte-fecha-fin').value;
+        const sucursal = document.getElementById('reporte-sucursal').value;
+
+        let query = db.collection("cuadres").where("fechaCuadre", ">=", fechaInicio).where("fechaCuadre", "<=", fechaFin);
+        if (sucursal !== "general") {
+            query = query.where("sucursal", "==", sucursal);
+        }
+        const querySnapshot = await query.get();
+
+        let reportData = [];
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            reportData.push({
+                fecha: data.fechaCuadre,
+                sucursal: data.sucursal,
+                ventaEfectivo: data.caja1_venta_efectivo + data.caja2_venta_efectivo + data.caja3_venta_efectivo,
+                ventaTarjeta: data.caja1_venta_tarjeta + data.caja2_venta_tarjeta + data.caja3_venta_tarjeta,
+                ventaMotorista: data.caja1_motorista + data.caja2_motorista + data.caja3_motorista,
+                totalGastos: data.total_gastos
             });
         });
-    }
+
+        if (reportData.length > 0) {
+            const reportTable = document.createElement('table');
+            const headers = Object.keys(reportData[0]);
+            const headerRow = document.createElement('tr');
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            reportTable.appendChild(headerRow);
+
+            reportData.forEach(rowData => {
+                const row = document.createElement('tr');
+                Object.values(rowData).forEach(cellData => {
+                    const td = document.createElement('td');
+                    td.textContent = cellData;
+                    row.appendChild(td);
+                });
+                reportTable.appendChild(row);
+            });
+
+            const reporteResultados = document.getElementById('reporte-resultados');
+            reporteResultados.innerHTML = '';
+            reporteResultados.appendChild(reportTable);
+        } else {
+            alert('No se encontraron datos para los criterios seleccionados');
+        }
+    });
 
     updateTotals();
 });

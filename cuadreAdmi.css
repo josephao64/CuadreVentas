@@ -68,27 +68,33 @@ button:hover {
     background-color: #45a049;
 }
 
+/* Cuadro de datos */
 #cuadro-datos {
     border: 1px solid black;
     padding: 10px;
-    width: 300px;
-    margin: 0 auto;
+    width: 300px; /* Ancho fijo */
+    margin: 0 auto; /* Centra horizontalmente */
+    box-sizing: border-box;
 }
 
+/* Encabezado del cuadro de datos */
 #cuadro-datos h2 {
     text-align: center;
     margin-top: 0;
 }
 
+/* Tabla dentro del cuadro de datos */
 #cuadro-datos table {
     width: auto;
     margin: 0 auto;
 }
 
+/* Celdas de la tabla dentro del cuadro de datos */
 #cuadro-datos table td {
     padding: 5px;
 }
 
+/* Botones de descarga */
 #download-cuadro-pdf, #download-pdf, #download-full-pdf {
     display: block;
     width: 100%;

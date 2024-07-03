@@ -12,33 +12,70 @@
         <form id="login-form">
             <label for="role">Seleccione su rol:</label>
             <select id="role" name="role" required>
-                <option value="" disabled selected>Seleccione su rol</option>
                 <option value="administracion">Administración</option>
-                <option value="encargado">Encargado</option>
+                <option value="encargado" selected>Encargado</option>
             </select>
-            <label for="password">Contraseña:</label>
-            <input type="password" id="password" name="password" required>
+            <div id="sucursal-container" style="display: none;">
+                <label for="sucursal">Seleccione su sucursal:</label>
+                <select id="sucursal" name="sucursal">
+                    <option value="jalapa">Jalapa</option>
+                    <option value="zacapa">Zacapa</option>
+                    <option value="pinula">Pinula</option>
+                    <option value="poptun">Poptún</option>
+                    <option value="eskala">Eskala</option>
+                    <option value="santa elena">Santa Elena</option>
+                </select>
+            </div>
+            <div id="password-container">
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
             <button type="submit">Ingresar</button>
         </form>
-        <div class="error" id="error-message">Contraseña incorrecta para el rol seleccionado.</div>
+        <div class="error" id="error-message" style="display: none;">Contraseña incorrecta para el rol seleccionado.</div>
     </div>
     <script>
+        document.getElementById('role').addEventListener('change', function() {
+            const role = document.getElementById('role').value;
+            const sucursalContainer = document.getElementById('sucursal-container');
+            const passwordContainer = document.getElementById('password-container');
+            
+            if (role === 'encargado') {
+                sucursalContainer.style.display = 'block';
+                passwordContainer.style.display = 'block';
+            } else {
+                sucursalContainer.style.display = 'none';
+                passwordContainer.style.display = 'block';
+            }
+        });
+
         document.getElementById('login-form').addEventListener('submit', function(event) {
             event.preventDefault();
             const role = document.getElementById('role').value;
             const password = document.getElementById('password').value;
+            const sucursal = document.getElementById('sucursal').value;
             const errorMessage = document.getElementById('error-message');
 
-            if ((role === 'administracion' && password === '0') || (role === 'encargado' && password === '1')) {
-                if (role === 'administracion') {
-                    window.location.href = 'CuadreAdmi.html';
-                } else if (role === 'encargado') {
-                    window.location.href = 'CuadreEncargado.html';
-                }
+            const sucursalPasswords = {
+                'jalapa': '1',
+                'zacapa': '2',
+                'pinula': '3',
+                'poptun': '4',
+                'eskala': '5',
+                'santa elena': '6'
+            };
+
+            if (role === 'encargado' && password === sucursalPasswords[sucursal]) {
+                window.location.href = `CuadreEncargado.html?sucursal=${sucursal}`;
+            } else if (role === 'administracion' && password === '0') {
+                window.location.href = 'CuadreAdmi.html';
             } else {
                 errorMessage.style.display = 'block';
             }
         });
+
+        // Simular el cambio para inicializar el formulario con "Encargado" seleccionado
+        document.getElementById('role').dispatchEvent(new Event('change'));
     </script>
 </body>
 </html>
