@@ -2,11 +2,13 @@
 <html lang="es">
 
 <head>
+    <!-- Configuración básica del documento -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cuadre de Ventas</title>
     <link rel="stylesheet" href="cuadreAdmi.css">
     <style>
+        /* Estilos en línea para la tarjeta de cuadre y otros elementos */
         .cuadre-card {
             border: 1px solid black;
             padding: 10px;
@@ -39,13 +41,13 @@
             box-sizing: border-box;
         }
     </style>
-    <!-- Firebase Configuration -->
+    <!-- Configuración de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-        const firebaseConfig = {
+         const firebaseConfig = {
             apiKey: "AIzaSyBlKbvKBhm3EuOhGbKg7Z8DMToM23tRGsA",
             authDomain: "sistemcuadresdb.firebaseapp.com",
             projectId: "sistemcuadresdb",
@@ -58,8 +60,10 @@
 </head>
 
 <body>
+    <!-- Contenedor principal -->
     <div class="container" id="content">
         <h1>Cuadre de Ventas</h1>
+        <!-- Botones principales -->
         <button id="cuadres-realizados-btn" class="main-button">Cuadres Realizados</button>
         <button id="nuevo-cuadre-btn" class="main-button">Crear Nuevo Cuadre</button>
         <button id="ventas-efectivo-btn" class="main-button">Ventas Efectivo</button>
@@ -69,14 +73,17 @@
         <button id="gastos-btn" class="main-button">Gastos</button>
         <button id="totales-btn" class="main-button">Totales por Cuadre</button>
 
+        <!-- Sección de cuadres realizados -->
         <div id="cuadres-realizados-content" class="section-content" style="display: none;">
             <h2>Cuadres Realizados</h2>
             <div id="cuadres-tarjetas"></div>
         </div>
 
+        <!-- Sección para realizar un nuevo cuadre -->
         <div id="cuadre-content" class="section-content" style="display: none;">
             <h2>Realizar Cuadre</h2>
             <form id="cuadre-form">
+                <!-- Subsección Sistema -->
                 <div class="section" id="sistema">
                     <h2>SISTEMA</h2>
                     <table>
@@ -88,6 +95,7 @@
                             <th>PEDIDOS YA</th>
                             <th>TOTAL</th>
                         </tr>
+                        <!-- Input para caja 1 -->
                         <tr>
                             <td>CAJA 1</td>
                             <td><input type="number" id="caja1-venta-efectivo" step="0.01" oninput="updateTotals()"></td>
@@ -96,6 +104,7 @@
                             <td><input type="number" id="caja1-pedidos-ya" step="0.01" oninput="updateTotals()"></td>
                             <td><input type="number" id="caja1-venta-total" readonly></td>
                         </tr>
+                        <!-- Input para caja 2 -->
                         <tr>
                             <td>CAJA 2</td>
                             <td><input type="number" id="caja2-venta-efectivo" step="0.01" oninput="updateTotals()"></td>
@@ -104,6 +113,7 @@
                             <td><input type="number" id="caja2-pedidos-ya" step="0.01" oninput="updateTotals()"></td>
                             <td><input type="number" id="caja2-venta-total" readonly></td>
                         </tr>
+                        <!-- Input para caja 3 -->
                         <tr>
                             <td>CAJA 3</td>
                             <td><input type="number" id="caja3-venta-efectivo" step="0.01" oninput="updateTotals()"></td>
@@ -112,6 +122,7 @@
                             <td><input type="number" id="caja3-pedidos-ya" step="0.01" oninput="updateTotals()"></td>
                             <td><input type="number" id="caja3-venta-total" readonly></td>
                         </tr>
+                        <!-- Totales -->
                         <tr>
                             <td>TOTAL</td>
                             <td><input type="number" id="total-venta-efectivo" readonly></td>
@@ -122,6 +133,7 @@
                         </tr>
                     </table>
                 </div>
+                <!-- Subsección Control Administrativo -->
                 <div class="section" id="control-administrativo">
                     <h2>CAJA</h2>
                     <table>
@@ -139,6 +151,7 @@
                             <th>MOTORISTA</th>
                             <th>TOTAL VENTA CAJERO</th>
                         </tr>
+                        <!-- Input para caja 1 -->
                         <tr>
                             <td>CAJA 1</td>
                             <td><input type="number" id="caja1-100" step="0.01" oninput="updateTotals()"></td>
@@ -153,6 +166,7 @@
                             <td><input type="number" id="caja1-motorista-admin" step="0.01" oninput="updateTotals()"></td>
                             <td><input type="number" id="caja1-total-venta-cajero" readonly></td>
                         </tr>
+                        <!-- Input para caja 2 -->
                         <tr>
                             <td>CAJA 2</td>
                             <td><input type="number" id="caja2-100" step="0.01" oninput="updateTotals()"></td>
@@ -167,6 +181,7 @@
                             <td><input type="number" id="caja2-motorista-admin" step="0.01" oninput="updateTotals()"></td>
                             <td><input type="number" id="caja2-total-venta-cajero" readonly></td>
                         </tr>
+                        <!-- Input para caja 3 -->
                         <tr>
                             <td>CAJA 3</td>
                             <td><input type="number" id="caja3-100" step="0.01" oninput="updateTotals()"></td>
@@ -183,6 +198,7 @@
                         </tr>
                     </table>
                 </div>
+                <!-- Subsección Encargado -->
                 <div class="section" id="encargado">
                     <h2>ENCARGADO</h2>
                     <table>
@@ -194,6 +210,7 @@
                             <th>PEDIDOS YA</th>
                             <th>TOTAL</th>
                         </tr>
+                        <!-- Input para caja 1 -->
                         <tr>
                             <td>CAJA 1</td>
                             <td><input type="number" id="encargado-caja1-venta-efectivo" readonly></td>
@@ -202,6 +219,7 @@
                             <td><input type="number" id="encargado-caja1-pedidos-ya" readonly></td>
                             <td><input type="number" id="encargado-caja1-total" readonly></td>
                         </tr>
+                        <!-- Input para caja 2 -->
                         <tr>
                             <td>CAJA 2</td>
                             <td><input type="number" id="encargado-caja2-venta-efectivo" readonly></td>
@@ -210,6 +228,7 @@
                             <td><input type="number" id="encargado-caja2-pedidos-ya" readonly></td>
                             <td><input type="number" id="encargado-caja2-total" readonly></td>
                         </tr>
+                        <!-- Input para caja 3 -->
                         <tr>
                             <td>CAJA 3</td>
                             <td><input type="number" id="encargado-caja3-venta-efectivo" readonly></td>
@@ -218,6 +237,7 @@
                             <td><input type="number" id="encargado-caja3-pedidos-ya" readonly></td>
                             <td><input type="number" id="encargado-caja3-total" readonly></td>
                         </tr>
+                        <!-- Totales -->
                         <tr>
                             <td>TOTAL</td>
                             <td><input type="number" id="total-encargado-venta-efectivo" readonly></td>
@@ -228,6 +248,7 @@
                         </tr>
                     </table>
                 </div>
+                <!-- Subsección Diferencia -->
                 <div class="section" id="diferencia">
                     <h2>DIFERENCIA</h2>
                     <table>
@@ -238,6 +259,7 @@
                             <th>DIFERENCIA MOTORISTA</th>
                             <th>DIFERENCIA TOTAL</th>
                         </tr>
+                        <!-- Input para caja 1 -->
                         <tr>
                             <td>CAJA 1</td>
                             <td><input type="number" id="diferencia-caja1-efectivo" readonly></td>
@@ -245,6 +267,7 @@
                             <td><input type="number" id="diferencia-caja1-motorista" readonly></td>
                             <td><input type="number" id="diferencia-caja1-total" readonly></td>
                         </tr>
+                        <!-- Input para caja 2 -->
                         <tr>
                             <td>CAJA 2</td>
                             <td><input type="number" id="diferencia-caja2-efectivo" readonly></td>
@@ -252,6 +275,7 @@
                             <td><input type="number" id="diferencia-caja2-motorista" readonly></td>
                             <td><input type="number" id="diferencia-caja2-total" readonly></td>
                         </tr>
+                        <!-- Input para caja 3 -->
                         <tr>
                             <td>CAJA 3</td>
                             <td><input type="number" id="diferencia-caja3-efectivo" readonly></td>
@@ -261,6 +285,7 @@
                         </tr>
                     </table>
                 </div>
+                <!-- Subsección Gastos -->
                 <div class="section" id="gastos">
                     <h2>GASTOS</h2>
                     <table id="gastos-table">
@@ -284,6 +309,7 @@
                         </tbody>
                     </table>
                 </div>
+                <!-- Subsección Pedidos Ya -->
                 <div class="section" id="pedidos-ya">
                     <h2>PEDIDOS YA</h2>
                     <table id="pedidos-table">
@@ -304,6 +330,7 @@
                         </tbody>
                     </table>
                 </div>
+                <!-- Subsección Cuadro de Datos -->
                 <div class="section" id="cuadro-datos">
                     <h2><input type="text" id="nombre-sucursal" placeholder="NOMBRE SUCURSAL"></h2>
                     <table>
@@ -397,6 +424,7 @@
             <button id="download-cuadro-img">Descargar CUADRO DE DATOS en Imagen</button>
         </div>
 
+        <!-- Sección de ventas en efectivo -->
         <div id="ventas-efectivo-content" class="section-content" style="display: none;">
             <h2>Ventas Efectivo</h2>
             <label for="filtro-sucursal-ventas-efectivo">Filtrar por Sucursal:</label>
@@ -432,6 +460,7 @@
             </table>
         </div>
 
+        <!-- Sección de ventas con tarjeta -->
         <div id="ventas-tarjeta-content" class="section-content" style="display: none;">
             <h2>Ventas Tarjeta</h2>
             <label for="filtro-sucursal-ventas-tarjeta">Filtrar por Sucursal:</label>
@@ -467,6 +496,7 @@
             </table>
         </div>
 
+        <!-- Sección de ventas por motorista -->
         <div id="ventas-motorista-content" class="section-content" style="display: none;">
             <h2>Ventas Motorista</h2>
             <label for="filtro-sucursal-ventas-motorista">Filtrar por Sucursal:</label>
@@ -502,6 +532,7 @@
             </table>
         </div>
 
+        <!-- Sección de ventas por Pedidos Ya -->
         <div id="ventas-pedidos-ya-content" class="section-content" style="display: none;">
             <h2>Ventas Pedidos Ya</h2>
             <label for="filtro-sucursal-ventas-pedidos-ya">Filtrar por Sucursal:</label>
@@ -537,6 +568,7 @@
             </table>
         </div>
 
+        <!-- Sección de gastos -->
         <div id="gastos-content" class="section-content" style="display: none;">
             <h2>Gastos</h2>
             <label for="filtro-sucursal-gastos">Filtrar por Sucursal:</label>
@@ -572,6 +604,7 @@
             </table>
         </div>
 
+        <!-- Sección de totales por cuadre -->
         <div id="totales-content" class="section-content" style="display: none;">
             <h2>Totales por Cuadre</h2>
             <table id="totales-table">

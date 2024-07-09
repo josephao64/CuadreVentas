@@ -6,22 +6,24 @@
     <title>Cuadre Encargado</title>
     <link rel="stylesheet" href="cuadreEncargado.css">
     <style>
+        /* Ocultar los botones de aumento y disminución en los campos numéricos */
         input[type=number]::-webkit-outer-spin-button,
         input[type=number]::-webkit-inner-spin-button {
             -webkit-appearance: none;
-            appearance: none; /* Agrega esta línea para compatibilidad */
+            appearance: none; /* Compatibilidad con otros navegadores */
             margin: 0;
         }
         input[type=number] {
             -moz-appearance: textfield;
-            appearance: textfield; /* Agrega esta línea para compatibilidad */
+            appearance: textfield; /* Compatibilidad con otros navegadores */
         }
     </style>
-    <!-- Firebase Configuration -->
+    <!-- Configuración de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script>
-         const firebaseConfig = {
+        // Configuración de Firebase
+        const firebaseConfig = {
             apiKey: "AIzaSyBlKbvKBhm3EuOhGbKg7Z8DMToM23tRGsA",
             authDomain: "sistemcuadresdb.firebaseapp.com",
             projectId: "sistemcuadresdb",
@@ -29,23 +31,27 @@
             messagingSenderId: "775560324749",
             appId: "1:775560324749:web:27163f37ea9498b5a524c4"
         };
-        // Initialize Firebase
+        // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
     </script>
 </head>
 <body>
     <div class="container" id="main">
+        <!-- Botones principales para realizar cuadre y ver cuadres realizados -->
         <div class="button-container">
             <button id="realizar-cuadre-btn" class="main-button">Realizar Cuadre</button>
             <button id="cuadres-realizados-btn" class="main-button">Cuadres Realizados</button>
         </div>
+        <!-- Contenido del cuadre, inicialmente oculto -->
         <div id="cuadre-content" style="display: none;">
             <div class="container" id="content">
+                <!-- Botones de acción, inicialmente ocultos -->
                 <div id="action-buttons" style="display: none;">
                     <button id="cerrar-cuadre" class="main-button">Cerrar Cuadre</button>
                     <button id="editar-cuadre" class="main-button">Editar Cuadre</button>
                 </div>
                 <h1>Cuadre Encargado</h1>
+                <!-- Sección de información de cuadre -->
                 <div class="section" id="informacion-cuadre">
                     <h2>Información de Cuadre</h2>
                     <table>
@@ -66,8 +72,10 @@
                             <td><input type="date" id="fecha-cuadre" title="Seleccione la fecha de cuadre" required></td>
                         </tr>
                     </table>
+                    <!-- Botón para mostrar instrucciones -->
                     <button id="instrucciones-info-btn">Instrucciones</button>
                 </div>
+                <!-- Tarjeta de instrucciones para la sección de información de cuadre -->
                 <div id="instrucciones-tarjeta-info" class="instrucciones-tarjeta">
                     <h3>Instrucciones</h3>
                     <p><strong>ID Cuadre:</strong> Número único que identifica cada cuadre, incrementa automáticamente.</p>
@@ -76,8 +84,10 @@
                     <p><strong>Fecha de Cuadre:</strong> Fecha en la que se realiza el cuadre.</p>
                     <button id="cerrar-instrucciones-info">Cerrar</button>
                 </div>
+                <!-- Sección de caja -->
                 <div class="section" id="caja">
                     <h2>CAJA <button id="instrucciones-caja-btn">Instrucciones</button></h2>
+                    <!-- Tarjeta de instrucciones para la sección de caja -->
                     <div id="instrucciones-tarjeta-caja" class="instrucciones-tarjeta">
                         <h3>Instrucciones</h3>
                         <p><strong>CAJA:</strong> Información de las ventas y efectivo en cada caja.</p>
@@ -99,6 +109,7 @@
                             <th>TOTAL VENTA CAJERO</th>
                             <th>NO SE USA</th>
                         </tr>
+                        <!-- Fila de datos para la caja 1 -->
                         <tr>
                             <td>CAJA 1</td>
                             <td><input type="number" id="caja1-100" step="0.01" title="Ingrese la cantidad de billetes de 100 en la caja 1" oninput="updateTotals()" required></td>
@@ -114,6 +125,7 @@
                             <td><input type="number" id="caja1-total-venta-cajero" readonly></td>
                             <td><input type="checkbox" id="caja1-no-se-usa" onchange="updateTotals()"></td>
                         </tr>
+                        <!-- Fila de datos para la caja 2 -->
                         <tr>
                             <td>CAJA 2</td>
                             <td><input type="number" id="caja2-100" step="0.01" title="Ingrese la cantidad de billetes de 100 en la caja 2" oninput="updateTotals()" required></td>
@@ -129,6 +141,7 @@
                             <td><input type="number" id="caja2-total-venta-cajero" readonly></td>
                             <td><input type="checkbox" id="caja2-no-se-usa" onchange="updateTotals()"></td>
                         </tr>
+                        <!-- Fila de datos para la caja 3 -->
                         <tr>
                             <td>CAJA 3</td>
                             <td><input type="number" id="caja3-100" step="0.01" title="Ingrese la cantidad de billetes de 100 en la caja 3" oninput="updateTotals()" required></td>
@@ -144,6 +157,7 @@
                             <td><input type="number" id="caja3-total-venta-cajero" readonly></td>
                             <td><input type="checkbox" id="caja3-no-se-usa" onchange="updateTotals()"></td>
                         </tr>
+                        <!-- Fila de totales -->
                         <tr>
                             <td>TOTAL</td>
                             <td><input type="number" id="total-100" readonly></td>
@@ -161,8 +175,10 @@
                         </tr>
                     </table>
                 </div>
+                <!-- Sección de gastos -->
                 <div class="section" id="gastos">
                     <h2>GASTOS <button id="instrucciones-gastos-btn">Instrucciones</button></h2>
+                    <!-- Tarjeta de instrucciones para la sección de gastos -->
                     <div id="instrucciones-tarjeta-gastos" class="instrucciones-tarjeta">
                         <h3>Instrucciones</h3>
                         <p><strong>GASTOS:</strong> Información detallada de los gastos realizados.</p>
@@ -179,6 +195,7 @@
                             </tr>
                         </thead>
                         <tbody id="gastos-tbody">
+                            <!-- Fila de entrada de datos para un gasto -->
                             <tr>
                                 <td><input type="number" data-type="cantidad" step="0.01" oninput="updateTotals()" required></td>
                                 <td><input type="text" data-type="descripcion" oninput="updateTotals()" required></td>
@@ -186,18 +203,22 @@
                                 <td><input type="number" data-type="precio-unitario" step="0.01" oninput="updateTotals()" required></td>
                                 <td><input type="number" data-type="total" readonly></td>
                             </tr>
+                            <!-- Fila de total de gastos -->
                             <tr>
                                 <td colspan="4">TOTAL GASTOS</td>
                                 <td><input type="number" id="total-gastos" readonly></td>
                             </tr>
+                            <!-- Botón para agregar más filas de gastos -->
                             <tr>
                                 <td colspan="5"><button type="button" onclick="addGasto()">Agregar Gasto</button></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+                <!-- Sección de Pedidos Ya -->
                 <div class="section" id="pedidos-ya">
                     <h2>PEDIDOS YA <button id="instrucciones-pedidos-btn">Instrucciones</button></h2>
+                    <!-- Tarjeta de instrucciones para la sección de Pedidos Ya -->
                     <div id="instrucciones-tarjeta-pedidos" class="instrucciones-tarjeta">
                         <h3>Instrucciones</h3>
                         <p><strong>PEDIDOS YA:</strong> Información detallada de los pedidos realizados.</p>
@@ -211,22 +232,27 @@
                             </tr>
                         </thead>
                         <tbody id="pedidos-tbody">
+                            <!-- Fila de entrada de datos para un pedido -->
                             <tr>
                                 <td><input type="text" data-type="ticket" required></td>
                                 <td><input type="number" data-type="total-pedido" step="0.01" required></td>
                             </tr>
+                            <!-- Fila de total de pedidos -->
                             <tr>
                                 <td colspan="1">TOTAL PEDIDOS YA</td>
                                 <td><input type="number" id="total-pedidos" readonly></td>
                             </tr>
+                            <!-- Botón para agregar más filas de pedidos -->
                             <tr>
                                 <td colspan="2"><button type="button" onclick="addPedido()">Agregar Comprobante</button></td>
                             </tr>
                         </tbody>
                     </table>
+                    <!-- Checkbox para indicar si no se usa el servicio de Pedidos Ya -->
                     <label for="pedidos-ya-no-se-usa">No se usa el servicio</label>
                     <input type="checkbox" id="pedidos-ya-no-se-usa" onchange="updateTotals()">
                 </div>
+                <!-- Sección final para mostrar el cuadro de datos completos -->
                 <div class="section" id="cuadro-datos" style="border: 1px solid black; padding: 10px;">
                     <h2 id="nombre-sucursal-final"></h2>
                     <table>
@@ -275,14 +301,17 @@
                         </tr>
                     </table>
                 </div>
+                <!-- Botones para guardar y confirmar el cuadre -->
                 <button id="guardar-cuadre">Guardar Cuadre</button>
                 <button id="confirmar-cuadre-btn" style="display: none;">Confirmar Cuadre</button>
+                <!-- Modal para confirmar el cuadre -->
                 <div id="confirmar-cuadre" class="modal">
                     <div class="modal-content">
                         <h3>Revisar y Confirmar Cuadre</h3>
                         <button id="cerrar-confirmar-cuadre-btn">Cerrar</button>
                     </div>
                 </div>
+                <!-- Modal para guardar y compartir el cuadro de datos -->
                 <div id="guardar-compartir-buttons" class="modal">
                     <div class="modal-content">
                         <h3>Cuadre Guardado</h3>
@@ -293,11 +322,13 @@
                 </div>
             </div>
         </div>
+        <!-- Sección de cuadres realizados -->
         <div id="cuadres-realizados-content" style="display: none;">
             <h2>Cuadres Realizados</h2>
             <div id="cuadres-tarjetas"></div>
         </div>
     </div>
+    <!-- Librerías para generación de PDF e imágenes -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="cuadreEncargado.js"></script>

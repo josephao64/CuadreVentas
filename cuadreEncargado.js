@@ -1,11 +1,11 @@
 document.addEventListener("DOMContentLoaded", async () => {
-    const { jsPDF } = window.jspdf;
-    const db = firebase.firestore();
+    const { jsPDF } = window.jspdf; // Importar jsPDF
+    const db = firebase.firestore(); // Inicializar Firestore
 
-    let idCuadre = 1;
-    const idCuadreField = document.getElementById('id-cuadre');
-    const idCuadreFinalField = document.getElementById('id-cuadre-final');
-    const confirmarCuadreBtn = document.getElementById('confirmar-cuadre-btn');
+    let idCuadre = 1; // Inicializar ID de cuadre
+    const idCuadreField = document.getElementById('id-cuadre'); // Elemento del ID de cuadre
+    const idCuadreFinalField = document.getElementById('id-cuadre-final'); // Elemento del ID de cuadre final
+    const confirmarCuadreBtn = document.getElementById('confirmar-cuadre-btn'); // Botón para confirmar el cuadre
 
     // Obtener sucursal desde los parámetros de la URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -20,6 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById('sucursal-final').value = sucursal;
     document.getElementById('nombre-sucursal-final').textContent = sucursal;
 
+    // Obtener el último ID de cuadre de Firestore
     const fetchLatestIdCuadre = async () => {
         const snapshot = await db.collection("cuadres").orderBy("idCuadre", "desc").limit(1).get();
         if (!snapshot.empty) {
@@ -32,8 +33,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (idCuadreFinalField) idCuadreFinalField.textContent = idCuadre;
     };
 
-    await fetchLatestIdCuadre();
+    await fetchLatestIdCuadre(); // Llamar a la función para obtener el último ID de cuadre
 
+    // Establecer la fecha al día anterior
     const setDateToYesterday = () => {
         const date = new Date();
         date.setDate(date.getDate() - 1);
@@ -42,6 +44,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('fecha-hoy').value = yesterday;
     };
 
+    // Restablecer el formulario
     const resetForm = async () => {
         document.getElementById('sucursal').value = sucursal || "";
         document.getElementById('caja-chica-inicial').value = "";
@@ -52,10 +55,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         unlockAllFields();
     };
 
-    setDateToYesterday();
+    setDateToYesterday(); // Establecer la fecha al día anterior
     if (idCuadreField) idCuadreField.textContent = idCuadre;
     if (idCuadreFinalField) idCuadreFinalField.textContent = idCuadre;
 
+    // Función para actualizar todos los totales
     window.updateTotals = function() {
         updateCajaTotals();
         updateGastos();
@@ -64,6 +68,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateCuadroDatos();
     };
 
+    // Función para actualizar los totales de la caja
     function updateCajaTotals() {
         for (let i = 1; i <= 3; i++) {
             const totalEfectivo = calculateTotal([
@@ -102,10 +107,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         setValue('total-venta-cajero', totalVentaCajero);
     }
 
+    // Función para calcular el total de los campos numéricos
     function calculateTotal(ids) {
         return ids.reduce((sum, id) => sum + parseFloat(document.getElementById(id)?.value || 0), 0);
     }
 
+    // Función para establecer el valor de un campo
     function setValue(id, value) {
         const elem = document.getElementById(id);
         if (elem) {
@@ -113,6 +120,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // Función para actualizar los totales de los gastos
     function updateGastos() {
         const filasGastos = Array.from(document.querySelectorAll("#gastos-tbody tr"));
         filasGastos.forEach(row => {
@@ -130,6 +138,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         setValue('total-gastos', totalGastos);
     }
 
+    // Función para actualizar los totales de los pedidos
     function updatePedidos() {
         const filasPedidos = Array.from(document.querySelectorAll("#pedidos-tbody tr"));
         filasPedidos.forEach(row => {
@@ -146,6 +155,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         setValue('total-pedidos-final', totalPedidos);
     }
 
+    // Función para actualizar el total a depositar
     function updateDeposito() {
         const totalEfectivoElems = ['caja1-total-efectivo', 'caja2-total-efectivo', 'caja3-total-efectivo'];
         const totalGastosElem = document.getElementById('total-gastos');
@@ -165,6 +175,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         setValue('total-depositar-banco-final', totalDepositarBanco);
     }
 
+    // Función para actualizar los datos del cuadro final
     function updateCuadroDatos() {
         const sucursal = document.getElementById('sucursal').value;
         const fechaCuadre = document.getElementById('fecha-cuadre').value;
@@ -190,6 +201,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         setValue('caja-chica-dia-siguiente-final', cajaChicaDiaSiguiente);
     }
 
+    // Función para establecer el contenido de texto de un elemento
     function setTextContent(id, text) {
         const elem = document.getElementById(id);
         if (elem) {
@@ -197,6 +209,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // Función para verificar si todos los campos requeridos están completos
     const checkEmptyFields = () => {
         const requiredFields = document.querySelectorAll("#cuadre-content input[required], #cuadre-content select[required]");
         let allFieldsFilled = true;
@@ -212,6 +225,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return allFieldsFilled;
     };
 
+    // Agregar eventos para actualizar los totales al cambiar los valores de los campos
     document.querySelectorAll("input[type='number'], input[type='checkbox'], select, input[type='date']").forEach(element => {
         if (element) {
             element.addEventListener("input", updateTotals);
@@ -219,6 +233,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
+    // Mover al siguiente campo al presionar Enter
     document.querySelectorAll("input").forEach(input => {
         input.addEventListener("keypress", (event) => {
             if (event.key === "Enter") {
@@ -233,12 +248,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const downloadImgBtn = document.getElementById("guardar-cuadro-datos");
     const compartirImgBtn = document.getElementById("compartir-cuadro-datos");
 
+    // Generar nombre de archivo
     const generateFileName = () => {
         const sucursal = document.getElementById('nombre-sucursal-final').textContent || 'sucursal';
         const fechaHoy = document.getElementById('fecha-hoy').value;
         return `cuadre-${sucursal}-${fechaHoy}`;
     };
 
+    // Descargar imagen del cuadro de datos
     if (downloadImgBtn) {
         downloadImgBtn.addEventListener("click", () => {
             if (!checkEmptyFields()) {
@@ -258,6 +275,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // Compartir imagen del cuadro de datos
     if (compartirImgBtn) {
         compartirImgBtn.addEventListener("click", () => {
             if (!checkEmptyFields()) {
@@ -278,6 +296,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // Mostrar y ocultar instrucciones
     const instruccionesInfoBtn = document.getElementById('instrucciones-info-btn');
     const instruccionesCajaBtn = document.getElementById('instrucciones-caja-btn');
     const instruccionesGastosBtn = document.getElementById('instrucciones-gastos-btn');
@@ -323,6 +342,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         instruccionesPedidosTarjeta.style.display = 'none';
     });
 
+    // Mostrar contenido de cuadre
     document.getElementById('realizar-cuadre-btn').addEventListener('click', async () => {
         await resetForm();
         document.getElementById('cuadre-content').style.display = 'block';
@@ -331,6 +351,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (actionButtons) actionButtons.style.display = 'none';
     });
 
+    // Mostrar contenido de cuadres realizados
     document.getElementById('cuadres-realizados-btn').addEventListener('click', async () => {
         document.getElementById('cuadre-content').style.display = 'none';
         document.getElementById('cuadres-realizados-content').style.display = 'block';
@@ -356,6 +377,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     });
 
+    // Guardar cuadre
     document.getElementById('guardar-cuadre').addEventListener('click', () => {
         if (!checkEmptyFields()) {
             alert("Por favor, complete todos los campos antes de guardar.");
@@ -427,6 +449,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             pedidosYa: []
         };
 
+        // Obtener detalles de los pedidos
         const filasPedidos = document.querySelectorAll("#pedidos-tbody tr");
         filasPedidos.forEach(row => {
             const ticket = row.querySelector("input[data-type='ticket']")?.value || "";
@@ -436,6 +459,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         });
 
+        // Guardar datos en Firestore
         await db.collection("cuadres").add(data);
         alert('Cuadre guardado con éxito');
         document.getElementById('confirmar-cuadre').style.display = 'none';
@@ -449,6 +473,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('cuadres-realizados-content').style.display = 'block';
     });
 
+    // Mostrar datos de un cuadre específico
     window.mostrarCuadre = async (id) => {
         const docRef = db.collection("cuadres").doc(id);
         const docSnap = await docRef.get();
@@ -533,6 +558,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         await mostrarCuadre(id);
     };
 
+    // Eliminar cuadre
     window.eliminarCuadre = async (id) => {
         if (confirm("¿Está seguro de que desea eliminar este cuadre?")) {
             await db.collection("cuadres").doc(id).delete();
@@ -541,6 +567,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     };
 
+    // Descargar cuadro de datos
     window.descargarCuadro = async (id) => {
         await mostrarCuadre(id);
         html2canvas(document.querySelector("#cuadro-datos"), { scale: 2 }).then(canvas => {
@@ -552,6 +579,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     };
 
+    // Bloquear todos los campos de entrada
     const lockAllFields = () => {
         document.querySelectorAll("input, select").forEach(element => {
             if (element.type !== "button" && element.type !== "checkbox") {
@@ -561,6 +589,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     };
 
+    // Desbloquear todos los campos de entrada
     const unlockAllFields = () => {
         document.querySelectorAll("input, select").forEach(element => {
             element.removeAttribute('readonly');
@@ -574,6 +603,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 });
 
+// Función para agregar una fila de gasto
 function addGasto() {
     const tableBody = document.getElementById("gastos-tbody");
     const row = document.createElement("tr");
@@ -588,6 +618,7 @@ function addGasto() {
     updateTotals();
 }
 
+// Función para agregar una fila de pedido
 function addPedido() {
     const tableBody = document.getElementById("pedidos-tbody");
     const row = document.createElement("tr");

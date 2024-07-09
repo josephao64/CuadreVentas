@@ -1,8 +1,10 @@
 document.addEventListener("DOMContentLoaded", async () => {
-    const { jsPDF } = window.jspdf;
-    const db = firebase.firestore();
+    const { jsPDF } = window.jspdf; // Importar jsPDF
+    const db = firebase.firestore(); // Inicializar Firestore
 
     const sections = document.querySelectorAll('.section-content');
+    
+    // Función para mostrar una sección específica
     const showSection = (sectionId) => {
         sections.forEach(section => {
             if (section.id === sectionId) {
@@ -13,8 +15,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     };
 
+    // Función para calcular el total de los elementos especificados por sus IDs
     const calculateTotal = (ids) => ids.reduce((total, id) => total + parseFloat(document.getElementById(id)?.value || 0), 0);
 
+    // Función para actualizar todos los totales
     window.updateTotals = function () {
         updateSistemaTotals();
         updateCajaTotals();
@@ -25,6 +29,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateCuadroDatos();
     };
 
+    // Función para obtener los cuadres de Firestore y mostrarlos
     async function fetchCuadres() {
         const querySnapshot = await db.collection("cuadres").get();
         const cuadresTarjetas = document.getElementById('cuadres-tarjetas');
@@ -44,6 +49,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // Función para mostrar un cuadre específico
     window.mostrarCuadre = async (id) => {
         const docRef = db.collection("cuadres").doc(id);
         const docSnap = await docRef.get();
@@ -55,66 +61,25 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById('fecha-hoy').value = data.fechaCuadre || '';
 
             // Limpiar campos del sistema
-            document.getElementById('caja1-venta-efectivo').value = '';
-            document.getElementById('caja1-venta-tarjeta').value = '';
-            document.getElementById('caja1-motorista').value = '';
-            document.getElementById('caja1-pedidos-ya').value = '';
-            document.getElementById('caja1-venta-total').value = '';
-            
-            document.getElementById('caja2-venta-efectivo').value = '';
-            document.getElementById('caja2-venta-tarjeta').value = '';
-            document.getElementById('caja2-motorista').value = '';
-            document.getElementById('caja2-pedidos-ya').value = '';
-            document.getElementById('caja2-venta-total').value = '';
+            const fieldsToClear = [
+                'caja1-venta-efectivo', 'caja1-venta-tarjeta', 'caja1-motorista', 'caja1-pedidos-ya', 'caja1-venta-total',
+                'caja2-venta-efectivo', 'caja2-venta-tarjeta', 'caja2-motorista', 'caja2-pedidos-ya', 'caja2-venta-total',
+                'caja3-venta-efectivo', 'caja3-venta-tarjeta', 'caja3-motorista', 'caja3-pedidos-ya', 'caja3-venta-total',
+                'total-venta-efectivo', 'total-venta-tarjeta', 'total-motorista', 'total-pedidos-ya', 'total-sistema'
+            ];
 
-            document.getElementById('caja3-venta-efectivo').value = '';
-            document.getElementById('caja3-venta-tarjeta').value = '';
-            document.getElementById('caja3-motorista').value = '';
-            document.getElementById('caja3-pedidos-ya').value = '';
-            document.getElementById('caja3-venta-total').value = '';
-
-            document.getElementById('total-venta-efectivo').value = '';
-            document.getElementById('total-venta-tarjeta').value = '';
-            document.getElementById('total-motorista').value = '';
-            document.getElementById('total-pedidos-ya').value = '';
-            document.getElementById('total-sistema').value = '';
+            fieldsToClear.forEach(fieldId => document.getElementById(fieldId).value = '');
 
             // Cargar datos de caja ingresados por el encargado
-            document.getElementById('caja1-100').value = data.caja1_100 || 0;
-            document.getElementById('caja1-50').value = data.caja1_50 || 0;
-            document.getElementById('caja1-20').value = data.caja1_20 || 0;
-            document.getElementById('caja1-10').value = data.caja1_10 || 0;
-            document.getElementById('caja1-5').value = data.caja1_5 || 0;
-            document.getElementById('caja1-1').value = data.caja1_1 || 0;
-            document.getElementById('caja1-apertura').value = data.caja1_apertura || 0;
-            document.getElementById('caja1-tarjeta-admin').value = data.caja1_tarjeta_admin || 0;
-            document.getElementById('caja1-motorista-admin').value = data.caja1_motorista_admin || 0;
-            document.getElementById('caja1-total-efectivo').value = data.caja1_total_efectivo || 0;
-            document.getElementById('caja1-total-venta-cajero').value = data.caja1_total_venta_cajero || 0;
+            const fieldsToLoad = [
+                'caja1-100', 'caja1-50', 'caja1-20', 'caja1-10', 'caja1-5', 'caja1-1', 'caja1-apertura', 'caja1-tarjeta-admin', 'caja1-motorista-admin', 'caja1-total-efectivo', 'caja1-total-venta-cajero',
+                'caja2-100', 'caja2-50', 'caja2-20', 'caja2-10', 'caja2-5', 'caja2-1', 'caja2-apertura', 'caja2-tarjeta-admin', 'caja2-motorista-admin', 'caja2-total-efectivo', 'caja2-total-venta-cajero',
+                'caja3-100', 'caja3-50', 'caja3-20', 'caja3-10', 'caja3-5', 'caja3-1', 'caja3-apertura', 'caja3-tarjeta-admin', 'caja3-motorista-admin', 'caja3-total-efectivo', 'caja3-total-venta-cajero'
+            ];
 
-            document.getElementById('caja2-100').value = data.caja2_100 || 0;
-            document.getElementById('caja2-50').value = data.caja2_50 || 0;
-            document.getElementById('caja2-20').value = data.caja2_20 || 0;
-            document.getElementById('caja2-10').value = data.caja2_10 || 0;
-            document.getElementById('caja2-5').value = data.caja2_5 || 0;
-            document.getElementById('caja2-1').value = data.caja2_1 || 0;
-            document.getElementById('caja2-apertura').value = data.caja2_apertura || 0;
-            document.getElementById('caja2-tarjeta-admin').value = data.caja2_tarjeta_admin || 0;
-            document.getElementById('caja2-motorista-admin').value = data.caja2_motorista_admin || 0;
-            document.getElementById('caja2-total-efectivo').value = data.caja2_total_efectivo || 0;
-            document.getElementById('caja2-total-venta-cajero').value = data.caja2_total_venta_cajero || 0;
-
-            document.getElementById('caja3-100').value = data.caja3_100 || 0;
-            document.getElementById('caja3-50').value = data.caja3_50 || 0;
-            document.getElementById('caja3-20').value = data.caja3_20 || 0;
-            document.getElementById('caja3-10').value = data.caja3_10 || 0;
-            document.getElementById('caja3-5').value = data.caja3_5 || 0;
-            document.getElementById('caja3-1').value = data.caja3_1 || 0;
-            document.getElementById('caja3-apertura').value = data.caja3_apertura || 0;
-            document.getElementById('caja3-tarjeta-admin').value = data.caja3_tarjeta_admin || 0;
-            document.getElementById('caja3-motorista-admin').value = data.caja3_motorista_admin || 0;
-            document.getElementById('caja3-total-efectivo').value = data.caja3_total_efectivo || 0;
-            document.getElementById('caja3-total-venta-cajero').value = data.caja3_total_venta_cajero || 0;
+            fieldsToLoad.forEach(fieldId => {
+                document.getElementById(fieldId).value = data[fieldId.replace(/-/g, '_')] || 0;
+            });
 
             showSection('cuadre-content');
             updateTotals();
@@ -123,16 +88,19 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     };
 
+    // Mostrar cuadres realizados
     document.getElementById('cuadres-realizados-btn').addEventListener('click', async () => {
         await fetchCuadres();
         showSection('cuadres-realizados-content');
     });
 
+    // Crear un nuevo cuadre
     document.getElementById('nuevo-cuadre-btn').addEventListener('click', () => {
         document.getElementById('cuadre-form').reset();
         showSection('cuadre-content');
     });
 
+    // Función para actualizar los totales del sistema
     function updateSistemaTotals() {
         for (let i = 1; i <= 3; i++) {
             const totalVentaSistema = calculateTotal([
@@ -141,53 +109,43 @@ document.addEventListener("DOMContentLoaded", async () => {
                 `caja${i}-motorista`,
                 `caja${i}-pedidos-ya`
             ]);
-            const ventaTotal = document.getElementById(`caja${i}-venta-total`);
-            if (ventaTotal) {
-                ventaTotal.value = totalVentaSistema.toFixed(2);
-            }
+            document.getElementById(`caja${i}-venta-total`).value = totalVentaSistema.toFixed(2);
         }
+        
         const totalVentaEfectivo = calculateTotal(['caja1-venta-efectivo', 'caja2-venta-efectivo', 'caja3-venta-efectivo']);
         const totalVentaTarjeta = calculateTotal(['caja1-venta-tarjeta', 'caja2-venta-tarjeta', 'caja3-venta-tarjeta']);
         const totalMotorista = calculateTotal(['caja1-motorista', 'caja2-motorista', 'caja3-motorista']);
         const totalPedidosYa = calculateTotal(['caja1-pedidos-ya', 'caja2-pedidos-ya', 'caja3-pedidos-ya']);
-        const totalVentaEfectivoElem = document.getElementById('total-venta-efectivo');
-        const totalVentaTarjetaElem = document.getElementById('total-venta-tarjeta');
-        const totalMotoristaElem = document.getElementById('total-motorista');
-        const totalPedidosYaElem = document.getElementById('total-pedidos-ya');
-        const totalSistemaElem = document.getElementById('total-sistema');
-        if (totalVentaEfectivoElem) totalVentaEfectivoElem.value = totalVentaEfectivo.toFixed(2);
-        if (totalVentaTarjetaElem) totalVentaTarjetaElem.value = totalVentaTarjeta.toFixed(2);
-        if (totalMotoristaElem) totalMotoristaElem.value = totalMotorista.toFixed(2);
-        if (totalPedidosYaElem) totalPedidosYaElem.value = totalPedidosYa.toFixed(2);
-        if (totalSistemaElem) totalSistemaElem.value = (totalVentaEfectivo + totalVentaTarjeta + totalMotorista + totalPedidosYa).toFixed(2);
+        
+        document.getElementById('total-venta-efectivo').value = totalVentaEfectivo.toFixed(2);
+        document.getElementById('total-venta-tarjeta').value = totalVentaTarjeta.toFixed(2);
+        document.getElementById('total-motorista').value = totalMotorista.toFixed(2);
+        document.getElementById('total-pedidos-ya').value = totalPedidosYa.toFixed(2);
+        document.getElementById('total-sistema').value = (totalVentaEfectivo + totalVentaTarjeta + totalMotorista + totalPedidosYa).toFixed(2);
     }
 
+    // Función para actualizar los totales de la caja
     function updateCajaTotals() {
         for (let i = 1; i <= 3; i++) {
             const totalEfectivo = calculateTotal([
                 `caja${i}-100`, `caja${i}-50`, `caja${i}-20`, `caja${i}-10`, `caja${i}-5`, `caja${i}-1`
             ]) - parseFloat(document.getElementById(`caja${i}-apertura`)?.value || 0);
-            const totalEfectivoElem = document.getElementById(`caja${i}-total-efectivo`);
-            const totalVentaCajeroElem = document.getElementById(`caja${i}-total-venta-cajero`);
-            if (totalEfectivoElem) totalEfectivoElem.value = totalEfectivo.toFixed(2);
-            if (totalVentaCajeroElem) totalVentaCajeroElem.value = (totalEfectivo +
+            document.getElementById(`caja${i}-total-efectivo`).value = totalEfectivo.toFixed(2);
+            document.getElementById(`caja${i}-total-venta-cajero`).value = (totalEfectivo +
                 parseFloat(document.getElementById(`caja${i}-tarjeta-admin`)?.value || 0) +
                 parseFloat(document.getElementById(`caja${i}-motorista-admin`)?.value || 0)).toFixed(2);
         }
     }
 
+    // Función para actualizar los datos ingresados por el encargado
     function updateEncargado() {
         for (let i = 1; i <= 3; i++) {
-            const efectivoElem = document.getElementById(`encargado-caja${i}-venta-efectivo`);
-            const tarjetaElem = document.getElementById(`encargado-caja${i}-venta-tarjeta`);
-            const motoristaElem = document.getElementById(`encargado-caja${i}-motorista`);
-            const totalElem = document.getElementById(`encargado-caja${i}-total`);
-            if (efectivoElem) efectivoElem.value = document.getElementById(`caja${i}-total-efectivo`)?.value || 0;
-            if (tarjetaElem) tarjetaElem.value = document.getElementById(`caja${i}-tarjeta-admin`)?.value || 0;
-            if (motoristaElem) motoristaElem.value = document.getElementById(`caja${i}-motorista-admin`)?.value || 0;
-            if (totalElem) totalElem.value = (parseFloat(efectivoElem?.value || 0) +
-                parseFloat(tarjetaElem?.value || 0) +
-                parseFloat(motoristaElem?.value || 0)).toFixed(2);
+            document.getElementById(`encargado-caja${i}-venta-efectivo`).value = document.getElementById(`caja${i}-total-efectivo`)?.value || 0;
+            document.getElementById(`encargado-caja${i}-venta-tarjeta`).value = document.getElementById(`caja${i}-tarjeta-admin`)?.value || 0;
+            document.getElementById(`encargado-caja${i}-motorista`).value = document.getElementById(`caja${i}-motorista-admin`)?.value || 0;
+            document.getElementById(`encargado-caja${i}-total`).value = (parseFloat(document.getElementById(`encargado-caja${i}-venta-efectivo`)?.value || 0) +
+                parseFloat(document.getElementById(`encargado-caja${i}-venta-tarjeta`)?.value || 0) +
+                parseFloat(document.getElementById(`encargado-caja${i}-motorista`)?.value || 0)).toFixed(2);
         }
 
         const totalEncargadoVentaEfectivo = calculateTotal(['encargado-caja1-venta-efectivo', 'encargado-caja2-venta-efectivo', 'encargado-caja3-venta-efectivo']);
@@ -203,6 +161,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('total-encargado').value = totalEncargado.toFixed(2);
     }
 
+    // Función para actualizar las diferencias
     function updateDiferencia() {
         for (let i = 1; i <= 3; i++) {
             const efectivoSistema = parseFloat(document.getElementById(`caja${i}-venta-efectivo`)?.value || 0);
@@ -211,17 +170,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             const tarjetaEncargado = parseFloat(document.getElementById(`encargado-caja${i}-venta-tarjeta`)?.value || 0);
             const motoristaSistema = parseFloat(document.getElementById(`caja${i}-motorista`)?.value || 0);
             const motoristaEncargado = parseFloat(document.getElementById(`encargado-caja${i}-motorista`)?.value || 0);
-            const diferenciaEfectivoElem = document.getElementById(`diferencia-caja${i}-efectivo`);
-            const diferenciaTarjetaElem = document.getElementById(`diferencia-caja${i}-tarjeta`);
-            const diferenciaMotoristaElem = document.getElementById(`diferencia-caja${i}-motorista`);
-            const totalDiferenciaElem = document.getElementById(`diferencia-caja${i}-total`);
-            if (diferenciaEfectivoElem) diferenciaEfectivoElem.value = (efectivoEncargado - efectivoSistema).toFixed(2);
-            if (diferenciaTarjetaElem) diferenciaTarjetaElem.value = (tarjetaEncargado - tarjetaSistema).toFixed(2);
-            if (diferenciaMotoristaElem) diferenciaMotoristaElem.value = (motoristaEncargado - motoristaSistema).toFixed(2);
-            if (totalDiferenciaElem) totalDiferenciaElem.value = ((efectivoEncargado - efectivoSistema) + (tarjetaEncargado - tarjetaSistema) + (motoristaEncargado - motoristaSistema)).toFixed(2);
+            document.getElementById(`diferencia-caja${i}-efectivo`).value = (efectivoEncargado - efectivoSistema).toFixed(2);
+            document.getElementById(`diferencia-caja${i}-tarjeta`).value = (tarjetaEncargado - tarjetaSistema).toFixed(2);
+            document.getElementById(`diferencia-caja${i}-motorista`).value = (motoristaEncargado - motoristaSistema).toFixed(2);
+            document.getElementById(`diferencia-caja${i}-total`).value = ((efectivoEncargado - efectivoSistema) + (tarjetaEncargado - tarjetaSistema) + (motoristaEncargado - motoristaSistema)).toFixed(2);
         }
     }
 
+    // Función para actualizar los totales de gastos
     function updateGastos() {
         const totalGastos = Array.from(document.querySelectorAll("#gastos-tbody tr"))
             .reduce((total, row) => {
@@ -237,6 +193,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('total-gastos').value = totalGastos.toFixed(2);
     }
 
+    // Función para actualizar los totales de pedidos
     function updatePedidos() {
         const totalPedidos = Array.from(document.querySelectorAll("#pedidos-tbody tr"))
             .reduce((total, row) => {
@@ -247,6 +204,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('total-pedidos').value = totalPedidos.toFixed(2);
     }
 
+    // Función para actualizar los datos del cuadro final
     function updateCuadroDatos() {
         const fechaHoy = new Date().toISOString().split('T')[0];
         document.getElementById('fecha-hoy').value = fechaHoy;
@@ -270,49 +228,48 @@ document.addEventListener("DOMContentLoaded", async () => {
         const sobranteCuadroElem = document.getElementById('sobrante-cuadro');
         const totalDepositarCuadroElem = document.getElementById('total-depositar-cuadro');
 
-        if (ventaEfectivoCuadroElem) ventaEfectivoCuadroElem.value = totalVentaEfectivo.toFixed(2);
-        if (ventaTarjetaCuadroElem) ventaTarjetaCuadroElem.value = totalVentaTarjeta.toFixed(2);
-        if (motoristaCuadroElem) motoristaCuadroElem.value = totalMotoristaAdmin.toFixed(2);
-        if (totalCuadroElem) totalCuadroElem.value = (totalVentaEfectivo + totalMotoristaAdmin + totalVentaTarjeta).toFixed(2);
+        ventaEfectivoCuadroElem.value = totalVentaEfectivo.toFixed(2);
+        ventaTarjetaCuadroElem.value = totalVentaTarjeta.toFixed(2);
+        motoristaCuadroElem.value = totalMotoristaAdmin.toFixed(2);
+        totalCuadroElem.value = (totalVentaEfectivo + totalMotoristaAdmin + totalVentaTarjeta).toFixed(2);
 
         const sobrante = (totalEncargado - totalSistema).toFixed(2);
-        if (ventaEfectivoAdminElem) ventaEfectivoAdminElem.value = (totalVentaEfectivo + totalMotoristaAdmin).toFixed(2);
-        if (ventaTarjetaAdminElem) ventaTarjetaAdminElem.value = totalVentaTarjeta.toFixed(2);
-        if (totalEfectivoAdminElem) totalEfectivoAdminElem.value = (totalVentaEfectivo + totalMotoristaAdmin).toFixed(2);
-        if (motoristaCuadroAdminElem) motoristaCuadroAdminElem.value = totalMotoristaAdmin.toFixed(2);
-        if (gastosCuadroElem) gastosCuadroElem.value = (-totalGastos).toFixed(2);
-        if (sobranteCuadroElem) sobranteCuadroElem.value = sobrante;
+        ventaEfectivoAdminElem.value = (totalVentaEfectivo + totalMotoristaAdmin).toFixed(2);
+        ventaTarjetaAdminElem.value = totalVentaTarjeta.toFixed(2);
+        totalEfectivoAdminElem.value = (totalVentaEfectivo + totalMotoristaAdmin).toFixed(2);
+        motoristaCuadroAdminElem.value = totalMotoristaAdmin.toFixed(2);
+        gastosCuadroElem.value = (-totalGastos).toFixed(2);
+        sobranteCuadroElem.value = sobrante;
 
         const totalADepositar = (parseFloat(totalEfectivoAdminElem.value) + parseFloat(ventaTarjetaAdminElem.value) + parseFloat(motoristaCuadroAdminElem.value) + parseFloat(gastosCuadroElem.value) + parseFloat(sobranteCuadroElem.value)).toFixed(2);
-        if (totalDepositarCuadroElem) totalDepositarCuadroElem.value = totalADepositar;
+        totalDepositarCuadroElem.value = totalADepositar;
 
         const diferenciaEfectivoCuadroElem = document.getElementById('diferencia-efectivo-cuadro');
         const diferenciaTarjetaCuadroElem = document.getElementById('diferencia-tarjeta-cuadro');
         const diferenciaTotalCuadroElem = document.getElementById('diferencia-total-cuadro');
 
-        if (diferenciaEfectivoCuadroElem) diferenciaEfectivoCuadroElem.value = (totalVentaEfectivo - parseFloat(document.getElementById('total-venta-efectivo').value)).toFixed(2);
-        if (diferenciaTarjetaCuadroElem) diferenciaTarjetaCuadroElem.value = (totalVentaTarjeta - parseFloat(document.getElementById('total-venta-tarjeta').value)).toFixed(2);
-        if (diferenciaTotalCuadroElem) diferenciaTotalCuadroElem.value = (parseFloat(diferenciaEfectivoCuadroElem.value) + parseFloat(diferenciaTarjetaCuadroElem.value)).toFixed(2);
+        diferenciaEfectivoCuadroElem.value = (totalVentaEfectivo - parseFloat(document.getElementById('total-venta-efectivo').value)).toFixed(2);
+        diferenciaTarjetaCuadroElem.value = (totalVentaTarjeta - parseFloat(document.getElementById('total-venta-tarjeta').value)).toFixed(2);
+        diferenciaTotalCuadroElem.value = (parseFloat(diferenciaEfectivoCuadroElem.value) + parseFloat(diferenciaTarjetaCuadroElem.value)).toFixed(2);
     }
 
+    // Event listeners para inputs que deben actualizar los totales
     document.querySelectorAll("input[type='number'], input[type='checkbox']").forEach(element => {
-        if (element) {
-            element.addEventListener("input", updateTotals);
-            element.addEventListener("change", updateTotals);
-        }
+        element.addEventListener("input", updateTotals);
+        element.addEventListener("change", updateTotals);
     });
 
+    // Función para cerrar un cuadre
     document.getElementById('cerrar-cuadre-btn').addEventListener('click', async () => {
         const idCuadre = document.getElementById('id-cuadre').value;
         if (idCuadre) {
-            await db.collection("cuadres").doc(idCuadre).update({
-                cerrado: true
-            });
+            await db.collection("cuadres").doc(idCuadre).update({ cerrado: true });
             alert("Cuadre cerrado correctamente");
             showSection('cuadres-realizados-content');
         }
     });
 
+    // Función para descargar la imagen del cuadro de datos
     document.getElementById('download-cuadro-img').addEventListener('click', async () => {
         const cuadroDatos = document.getElementById('cuadro-datos');
         html2canvas(cuadroDatos).then(canvas => {
@@ -324,7 +281,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     });
 
-    // Functions for the new buttons
+    // Función para generar un reporte
     async function generateReport(type, resultadosId, totalValorId, filterId, searchId, startDateId, endDateId) {
         const querySnapshot = await db.collection("cuadres").get();
         const selectedSucursal = document.getElementById(filterId).value;
@@ -333,6 +290,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const endDateValue = document.getElementById(endDateId).value;
         let reportData = [];
         let totalValor = 0;
+        
         querySnapshot.forEach(doc => {
             const data = doc.data();
             const fechaCuadre = new Date(data.fechaCuadre);
@@ -358,6 +316,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const resultadosDiv = document.getElementById(resultadosId);
         resultadosDiv.innerHTML = '';
+        
         if (reportData.length > 0) {
             reportData.forEach(rowData => {
                 const row = document.createElement('tr');
@@ -389,6 +348,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // Función para generar el reporte de totales
     async function generateTotalesReport() {
         const querySnapshot = await db.collection("cuadres").get();
         let reportData = [];
@@ -477,6 +437,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // Función para añadir los event listeners para los reportes
     function addEventListenersForReport(type, resultadosId, totalValorId, filterId, searchId, startDateId, endDateId) {
         document.getElementById(filterId).addEventListener('change', async () => {
             await generateReport(type, resultadosId, totalValorId, filterId, searchId, startDateId, endDateId);
@@ -492,6 +453,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // Botones para generar los diferentes reportes
     document.getElementById('ventas-efectivo-btn').addEventListener('click', async () => {
         await generateReport('totalEfectivo', 'ventas-efectivo-resultados', 'ventas-efectivo-total-valor', 'filtro-sucursal-ventas-efectivo', 'search-id-ventas-efectivo', 'start-date-ventas-efectivo', 'end-date-ventas-efectivo');
         showSection('ventas-efectivo-content');
@@ -522,12 +484,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         showSection('totales-content');
     });
 
+    // Añadir event listeners para los reportes
     addEventListenersForReport('totalEfectivo', 'ventas-efectivo-resultados', 'ventas-efectivo-total-valor', 'filtro-sucursal-ventas-efectivo', 'search-id-ventas-efectivo', 'start-date-ventas-efectivo', 'end-date-ventas-efectivo');
     addEventListenersForReport('totalTarjeta', 'ventas-tarjeta-resultados', 'ventas-tarjeta-total-valor', 'filtro-sucursal-ventas-tarjeta', 'search-id-ventas-tarjeta', 'start-date-ventas-tarjeta', 'end-date-ventas-tarjeta');
     addEventListenersForReport('totalMotoristaAdmin', 'ventas-motorista-resultados', 'ventas-motorista-total-valor', 'filtro-sucursal-ventas-motorista', 'search-id-ventas-motorista', 'start-date-ventas-motorista', 'end-date-ventas-motorista');
     addEventListenersForReport('totalPedidos', 'ventas-pedidos-ya-resultados', 'ventas-pedidos-ya-total-valor', 'filtro-sucursal-ventas-pedidos-ya', 'search-id-ventas-pedidos-ya', 'start-date-ventas-pedidos-ya', 'end-date-ventas-pedidos-ya');
     addEventListenersForReport('totalGastos', 'gastos-resultados', 'gastos-total-valor', 'filtro-sucursal-gastos', 'search-id-gastos', 'start-date-gastos', 'end-date-gastos');
 
+    // Función para exportar tablas a PDF
     function exportTableToPDF(tableId, title) {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
@@ -541,6 +505,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // Botones para exportar reportes a PDF
     document.getElementById('export-ventas-efectivo-pdf').addEventListener('click', () => {
         exportTableToPDF('ventas-efectivo-table', 'Ventas Efectivo');
     });
@@ -564,6 +529,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     updateTotals();
 });
 
+// Función para agregar una fila de gasto
 function addGasto() {
     const tableBody = document.getElementById("gastos-tbody");
     const row = document.createElement("tr");
@@ -578,6 +544,7 @@ function addGasto() {
     updateTotals();
 }
 
+// Función para agregar una fila de ticket
 function addTicket() {
     const tableBody = document.getElementById("pedidos-tbody");
     const row = document.createElement("tr");
