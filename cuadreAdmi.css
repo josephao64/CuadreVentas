@@ -45,7 +45,7 @@ table th {
     background-color: #f0f0f0;
 }
 
-input[type="number"], input[type="text"], input[type="date"] {
+input[type="number"], input[type="text"], input[type="date"], textarea {
     width: 100%;
     padding: 8px;
     box-sizing: border-box;
@@ -62,6 +62,8 @@ button {
     border: none;
     cursor: pointer;
     margin: 10px 0;
+    display: inline-block;
+    text-align: center;
 }
 
 button:hover {
@@ -95,8 +97,20 @@ button:hover {
 }
 
 /* Botones de descarga */
-#download-cuadro-pdf, #download-pdf, #download-full-pdf {
+#download-cuadro-img {
     display: block;
     width: 100%;
     margin: 10px 0;
+}
+
+#gastos-tbody tr td:last-child {
+    text-align: right;
+}
+
+/* Comentarios */
+textarea {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    resize: vertical;
 }

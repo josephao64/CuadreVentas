@@ -592,8 +592,8 @@ function addPedido() {
     const tableBody = document.getElementById("pedidos-tbody");
     const row = document.createElement("tr");
     row.innerHTML = `
-        <td><input type="text" data-type="ticket" oninput="updateTotals()" required></td>
-        <td><input type="number" data-type="total-pedido" step="0.01" oninput="updateTotals()" required></td>
+        <td><input type="text" data-type="ticket" required></td>
+        <td><input type="number" data-type="total-pedido" step="0.01" required></td>
     `;
     tableBody.insertBefore(row, tableBody.lastElementChild.previousElementSibling);
     updateTotals();

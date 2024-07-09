@@ -19,7 +19,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script>
-         const firebaseConfig = {
+       const firebaseConfig = {
             apiKey: "AIzaSyBlKbvKBhm3EuOhGbKg7Z8DMToM23tRGsA",
             authDomain: "sistemcuadresdb.firebaseapp.com",
             projectId: "sistemcuadresdb",
@@ -35,7 +35,6 @@
         <h1>Cuadre de Ventas</h1>
         <button id="cuadres-realizados-btn" class="main-button">Cuadres Realizados</button>
         <button id="nuevo-cuadre-btn" class="main-button">Crear Nuevo Cuadre</button>
-        <button id="reportes-btn" class="main-button">Reportes</button>
         
         <div id="cuadres-realizados-content" style="display: none;">
             <h2>Cuadres Realizados</h2>
@@ -236,22 +235,43 @@
                             <tr>
                                 <th>DESCRIPCIÓN</th>
                                 <th>NO FACTURA</th>
+                                <th>CANTIDAD</th>
                                 <th>VALOR Q</th>
+                                <th>TOTAL GASTO</th>
                             </tr>
                         </thead>
                         <tbody id="gastos-tbody">
                             <tr>
-                                <td colspan="2"></td>
-                                <td><button type="button" onclick="addGasto()">Agregar Gasto</button></td>
+                                <td colspan="4"></td>
+                                <td><input type="number" id="total-gastos" readonly></td>
                             </tr>
                             <tr>
-                                <td colspan="2">TOTAL GASTOS</td>
-                                <td><input type="number" id="total-gastos" readonly></td>
+                                <td colspan="4"><button type="button" onclick="addGasto()">Agregar Gasto</button></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="section" id="cuadro-datos" style="border: 1px solid black; padding: 10px; width: 300px;">
+                <div class="section" id="pedidos-ya">
+                    <h2>PEDIDOS YA</h2>
+                    <table id="pedidos-table">
+                        <thead>
+                            <tr>
+                                <th>NO TICKET</th>
+                                <th>VALOR TICKET</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pedidos-tbody">
+                            <tr>
+                                <td colspan="1"></td>
+                                <td><input type="number" id="total-pedidos" readonly></td>
+                            </tr>
+                            <tr>
+                                <td colspan="2"><button type="button" onclick="addTicket()">Agregar Ticket</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="section" id="cuadro-datos">
                     <h2><input type="text" id="nombre-sucursal" placeholder="NOMBRE SUCURSAL"></h2>
                     <table>
                         <tr>
@@ -297,6 +317,14 @@
                             <td><input type="number" id="venta-efectivo-admin" readonly></td>
                         </tr>
                         <tr>
+                            <td>Venta Tarjeta</td>
+                            <td><input type="number" id="venta-tarjeta-admin" readonly></td>
+                        </tr>
+                        <tr>
+                            <td>Total efectivo</td>
+                            <td><input type="number" id="total-efectivo-admin" readonly></td>
+                        </tr>
+                        <tr>
                             <td>Motorista</td>
                             <td><input type="number" id="motorista-cuadro-admin" readonly></td>
                         </tr>
@@ -313,33 +341,27 @@
                             <td><input type="number" id="total-depositar-cuadro" readonly></td>
                         </tr>
                     </table>
-                    <div id="download-buttons">
-                        <button id="download-cuadro-pdf">Descargar CUADRO DE DATOS en PDF</button>
-                        <button id="download-cuadro-img">Descargar CUADRO DE DATOS en Imagen</button>
-                        <button id="cerrar-cuadre-btn">Cerrar Cuadre</button>
-                    </div>
+                    <h2>Diferencia</h2>
+                    <table>
+                        <tr>
+                            <td>Diferencia Efectivo</td>
+                            <td><input type="number" id="diferencia-efectivo-cuadro" readonly></td>
+                        </tr>
+                        <tr>
+                            <td>Diferencia Tarjeta</td>
+                            <td><input type="number" id="diferencia-tarjeta-cuadro" readonly></td>
+                        </tr>
+                        <tr>
+                            <td>Diferencia Total</td>
+                            <td><input type="number" id="diferencia-total-cuadro" readonly></td>
+                        </tr>
+                    </table>
+                    <h2>Comentarios</h2>
+                    <textarea id="comentarios-cuadro" rows="4" cols="50" placeholder="Ingrese sus comentarios aquí..."></textarea>
                 </div>
             </form>
-        </div>
-        
-        <div id="reportes-content" style="display: none;">
-            <h2>Reportes</h2>
-            <form id="reportes-form">
-                <label for="reporte-tipo">Tipo de Reporte:</label><br>
-                <button type="button" id="reporte-ventas">Ventas</button>
-                <button type="button" id="reporte-gastos">Gastos</button>
-                <button type="button" id="reporte-diferencias">Diferencias</button>
-                <button type="button" id="reporte-general">General</button>
-                <br><br>
-                <label for="reporte-fecha-inicio">Fecha Inicio:</label>
-                <input type="date" id="reporte-fecha-inicio"><br>
-                <label for="reporte-fecha-fin">Fecha Fin:</label>
-                <input type="date" id="reporte-fecha-fin"><br>
-                <label for="reporte-sucursal">Sucursal:</label>
-                <select id="reporte-sucursal"></select><br>
-                <button type="button" id="generar-reporte-btn">Generar Reporte</button>
-            </form>
-            <div id="reporte-resultados"></div>
+            <button id="cerrar-cuadre-btn">Cerrar Cuadre</button>
+            <button id="download-cuadro-img">Descargar CUADRO DE DATOS en Imagen</button>
         </div>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
