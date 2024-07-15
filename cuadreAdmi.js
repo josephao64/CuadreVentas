@@ -1,10 +1,9 @@
 document.addEventListener("DOMContentLoaded", async () => {
-    const { jsPDF } = window.jspdf; // Importar jsPDF
-    const db = firebase.firestore(); // Inicializar Firestore
+    const { jsPDF } = window.jspdf;
+    const db = firebase.firestore();
 
     const sections = document.querySelectorAll('.section-content');
-    
-    // Función para mostrar una sección específica
+
     const showSection = (sectionId) => {
         sections.forEach(section => {
             if (section.id === sectionId) {
@@ -15,10 +14,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     };
 
-    // Función para calcular el total de los elementos especificados por sus IDs
     const calculateTotal = (ids) => ids.reduce((total, id) => total + parseFloat(document.getElementById(id)?.value || 0), 0);
 
-    // Función para actualizar todos los totales
     window.updateTotals = function () {
         updateSistemaTotals();
         updateCajaTotals();
@@ -29,11 +26,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         updateCuadroDatos();
     };
 
-    // Función para obtener los cuadres de Firestore y mostrarlos
     async function fetchCuadres() {
-        const querySnapshot = await db.collection("cuadres").get();
+        const querySnapshot = await db.collection("cuadres").orderBy("fechaCuadre", "desc").get();
         const cuadresTarjetas = document.getElementById('cuadres-tarjetas');
+        const cuadresTarjetasAdmin = document.getElementById('cuadres-tarjetas-admin');
         cuadresTarjetas.innerHTML = '';
+        cuadresTarjetasAdmin.innerHTML = '';
 
         querySnapshot.forEach(doc => {
             const data = doc.data();
@@ -43,13 +41,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <h3>ID Cuadre: ${data.idCuadre} - ${data.sucursal}</h3>
                 <p>Fecha: ${data.fechaCuadre}</p>
                 <button onclick="mostrarCuadre('${doc.id}')">Mostrar Cuadre</button>
-                <button onclick="realizarCuadre('${doc.id}')">Realizar Cuadre</button>
+                <button onclick="eliminarCuadre('${doc.id}')">Eliminar Cuadre</button>
             `;
             cuadresTarjetas.appendChild(card);
+            cuadresTarjetasAdmin.appendChild(card.cloneNode(true));
         });
     }
 
-    // Función para mostrar un cuadre específico
     window.mostrarCuadre = async (id) => {
         const docRef = db.collection("cuadres").doc(id);
         const docSnap = await docRef.get();
@@ -60,17 +58,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.getElementById('nombre-sucursal').value = data.sucursal || '';
             document.getElementById('fecha-hoy').value = data.fechaCuadre || '';
 
-            // Limpiar campos del sistema
-            const fieldsToClear = [
-                'caja1-venta-efectivo', 'caja1-venta-tarjeta', 'caja1-motorista', 'caja1-pedidos-ya', 'caja1-venta-total',
-                'caja2-venta-efectivo', 'caja2-venta-tarjeta', 'caja2-motorista', 'caja2-pedidos-ya', 'caja2-venta-total',
-                'caja3-venta-efectivo', 'caja3-venta-tarjeta', 'caja3-motorista', 'caja3-pedidos-ya', 'caja3-venta-total',
-                'total-venta-efectivo', 'total-venta-tarjeta', 'total-motorista', 'total-pedidos-ya', 'total-sistema'
-            ];
-
-            fieldsToClear.forEach(fieldId => document.getElementById(fieldId).value = '');
-
-            // Cargar datos de caja ingresados por el encargado
             const fieldsToLoad = [
                 'caja1-100', 'caja1-50', 'caja1-20', 'caja1-10', 'caja1-5', 'caja1-1', 'caja1-apertura', 'caja1-tarjeta-admin', 'caja1-motorista-admin', 'caja1-total-efectivo', 'caja1-total-venta-cajero',
                 'caja2-100', 'caja2-50', 'caja2-20', 'caja2-10', 'caja2-5', 'caja2-1', 'caja2-apertura', 'caja2-tarjeta-admin', 'caja2-motorista-admin', 'caja2-total-efectivo', 'caja2-total-venta-cajero',
@@ -88,19 +75,163 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     };
 
-    // Mostrar cuadres realizados
+    window.eliminarCuadre = async (id) => {
+        if (confirm("¿Estás seguro de que deseas eliminar este cuadre?")) {
+            await db.collection("cuadres").doc(id).delete();
+            alert("Cuadre eliminado correctamente");
+            await fetchCuadres();
+        }
+    };
+
     document.getElementById('cuadres-realizados-btn').addEventListener('click', async () => {
         await fetchCuadres();
         showSection('cuadres-realizados-content');
     });
 
-    // Crear un nuevo cuadre
     document.getElementById('nuevo-cuadre-btn').addEventListener('click', () => {
         document.getElementById('cuadre-form').reset();
         showSection('cuadre-content');
     });
 
-    // Función para actualizar los totales del sistema
+    document.getElementById('finalizar-cuadre-btn').addEventListener('click', async () => {
+        const idCuadre = document.getElementById('id-cuadre').value;
+        const data = {
+            caja1_100: document.getElementById('caja1-100').value,
+            caja1_50: document.getElementById('caja1-50').value,
+            caja1_20: document.getElementById('caja1-20').value,
+            caja1_10: document.getElementById('caja1-10').value,
+            caja1_5: document.getElementById('caja1-5').value,
+            caja1_1: document.getElementById('caja1-1').value,
+            caja1_apertura: document.getElementById('caja1-apertura').value,
+            caja1_tarjeta_admin: document.getElementById('caja1-tarjeta-admin').value,
+            caja1_motorista_admin: document.getElementById('caja1-motorista-admin').value,
+            caja1_total_efectivo: document.getElementById('caja1-total-efectivo').value,
+            caja1_total_venta_cajero: document.getElementById('caja1-total-venta-cajero').value,
+            caja2_100: document.getElementById('caja2-100').value,
+            caja2_50: document.getElementById('caja2-50').value,
+            caja2_20: document.getElementById('caja2-20').value,
+            caja2_10: document.getElementById('caja2-10').value,
+            caja2_5: document.getElementById('caja2-5').value,
+            caja2_1: document.getElementById('caja2-1').value,
+            caja2_apertura: document.getElementById('caja2-apertura').value,
+            caja2_tarjeta_admin: document.getElementById('caja2-tarjeta-admin').value,
+            caja2_motorista_admin: document.getElementById('caja2-motorista-admin').value,
+            caja2_total_efectivo: document.getElementById('caja2-total-efectivo').value,
+            caja2_total_venta_cajero: document.getElementById('caja2-total-venta-cajero').value,
+            caja3_100: document.getElementById('caja3-100').value,
+            caja3_50: document.getElementById('caja3-50').value,
+            caja3_20: document.getElementById('caja3-20').value,
+            caja3_10: document.getElementById('caja3-10').value,
+            caja3_5: document.getElementById('caja3-5').value,
+            caja3_1: document.getElementById('caja3-1').value,
+            caja3_apertura: document.getElementById('caja3-apertura').value,
+            caja3_tarjeta_admin: document.getElementById('caja3-tarjeta-admin').value,
+            caja3_motorista_admin: document.getElementById('caja3-motorista-admin').value,
+            caja3_total_efectivo: document.getElementById('caja3-total-efectivo').value,
+            caja3_total_venta_cajero: document.getElementById('caja3-total-venta-cajero').value,
+            totalEfectivo: document.getElementById('total-venta-efectivo').value,
+            totalTarjeta: document.getElementById('total-venta-tarjeta').value,
+            totalMotoristaAdmin: document.getElementById('total-motorista').value,
+            totalGastos: document.getElementById('total-gastos').value,
+            totalPedidos: document.getElementById('total-pedidos').value,
+            cajaChicaDiaSiguiente: document.getElementById('caja-chica').value,
+            debeAyer: document.getElementById('debe-ayer').value,
+            totalDepositarBanco: document.getElementById('total-depositar-cuadro').value,
+            fechaCuadre: document.getElementById('fecha-hoy').value,
+            idCuadre: parseInt(document.getElementById('id-cuadre').value),
+            sucursal: document.getElementById('nombre-sucursal').value,
+            totalVentaCajero: document.getElementById('total-cuadro').value
+        };
+        await db.collection("cuadres").doc(idCuadre).set(data, { merge: true });
+        alert("Cuadre finalizado y guardado correctamente");
+        showSection('cuadres-realizados-content');
+    });
+
+    document.getElementById('cuadres-realizados-admin-btn').addEventListener('click', async () => {
+        await fetchCuadres();
+        showSection('cuadres-realizados-admin-content');
+    });
+
+    document.getElementById('download-cuadro-img').addEventListener('click', async () => {
+        const cuadroDatos = document.getElementById('cuadro-datos');
+        html2canvas(cuadroDatos).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = imgData;
+            link.download = `cuadre-${document.getElementById('nombre-sucursal').value}-${document.getElementById('fecha-hoy').value}.png`;
+            link.click();
+        });
+    });
+
+    document.getElementById('ventas-efectivo-btn').addEventListener('click', async () => {
+        await generateReport('totalEfectivo', 'ventas-efectivo-resultados', 'ventas-efectivo-total-valor', 'filtro-sucursal-ventas-efectivo', 'search-id-ventas-efectivo', 'start-date-ventas-efectivo', 'end-date-ventas-efectivo');
+        showSection('ventas-efectivo-content');
+    });
+
+    document.getElementById('ventas-tarjeta-btn').addEventListener('click', async () => {
+        await generateReport('totalTarjeta', 'ventas-tarjeta-resultados', 'ventas-tarjeta-total-valor', 'filtro-sucursal-ventas-tarjeta', 'search-id-ventas-tarjeta', 'start-date-ventas-tarjeta', 'end-date-ventas-tarjeta');
+        showSection('ventas-tarjeta-content');
+    });
+
+    document.getElementById('ventas-motorista-btn').addEventListener('click', async () => {
+        await generateReport('totalMotoristaAdmin', 'ventas-motorista-resultados', 'ventas-motorista-total-valor', 'filtro-sucursal-ventas-motorista', 'search-id-ventas-motorista', 'start-date-ventas-motorista', 'end-date-ventas-motorista');
+        showSection('ventas-motorista-content');
+    });
+
+    document.getElementById('ventas-pedidos-ya-btn').addEventListener('click', async () => {
+        await generateReport('totalPedidos', 'ventas-pedidos-ya-resultados', 'ventas-pedidos-ya-total-valor', 'filtro-sucursal-ventas-pedidos-ya', 'search-id-ventas-pedidos-ya', 'start-date-ventas-pedidos-ya', 'end-date-ventas-pedidos-ya');
+        showSection('ventas-pedidos-ya-content');
+    });
+
+    document.getElementById('gastos-btn').addEventListener('click', async () => {
+        await generateReport('totalGastos', 'gastos-resultados', 'gastos-total-valor', 'filtro-sucursal-gastos', 'search-id-gastos', 'start-date-gastos', 'end-date-gastos');
+        showSection('gastos-content');
+    });
+
+    document.getElementById('totales-btn').addEventListener('click', async () => {
+        await generateTotalesReport();
+        showSection('totales-content');
+    });
+
+    addEventListenersForReport('totalEfectivo', 'ventas-efectivo-resultados', 'ventas-efectivo-total-valor', 'filtro-sucursal-ventas-efectivo', 'search-id-ventas-efectivo', 'start-date-ventas-efectivo', 'end-date-ventas-efectivo');
+    addEventListenersForReport('totalTarjeta', 'ventas-tarjeta-resultados', 'ventas-tarjeta-total-valor', 'filtro-sucursal-ventas-tarjeta', 'search-id-ventas-tarjeta', 'start-date-ventas-tarjeta', 'end-date-ventas-tarjeta');
+    addEventListenersForReport('totalMotoristaAdmin', 'ventas-motorista-resultados', 'ventas-motorista-total-valor', 'filtro-sucursal-ventas-motorista', 'search-id-ventas-motorista', 'start-date-ventas-motorista', 'end-date-ventas-motorista');
+    addEventListenersForReport('totalPedidos', 'ventas-pedidos-ya-resultados', 'ventas-pedidos-ya-total-valor', 'filtro-sucursal-ventas-pedidos-ya', 'search-id-ventas-pedidos-ya', 'start-date-ventas-pedidos-ya', 'end-date-ventas-pedidos-ya');
+    addEventListenersForReport('totalGastos', 'gastos-resultados', 'gastos-total-valor', 'filtro-sucursal-gastos', 'search-id-gastos', 'start-date-gastos', 'end-date-gastos');
+
+    function exportTableToPDF(tableId, title) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        const table = document.getElementById(tableId);
+
+        html2canvas(table).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            doc.text(title, 20, 20);
+            doc.addImage(imgData, 'PNG', 20, 30, 170, 0);
+            doc.save(`${title}.pdf`);
+        });
+    }
+
+    document.getElementById('export-ventas-efectivo-pdf').addEventListener('click', () => {
+        exportTableToPDF('ventas-efectivo-table', 'Ventas Efectivo');
+    });
+
+    document.getElementById('export-ventas-tarjeta-pdf').addEventListener('click', () => {
+        exportTableToPDF('ventas-tarjeta-table', 'Ventas Tarjeta');
+    });
+
+    document.getElementById('export-ventas-motorista-pdf').addEventListener('click', () => {
+        exportTableToPDF('ventas-motorista-table', 'Ventas Motorista');
+    });
+
+    document.getElementById('export-ventas-pedidos-ya-pdf').addEventListener('click', () => {
+        exportTableToPDF('ventas-pedidos-ya-table', 'Ventas Pedidos Ya');
+    });
+
+    document.getElementById('export-gastos-pdf').addEventListener('click', () => {
+        exportTableToPDF('gastos-table', 'Gastos');
+    });
+
     function updateSistemaTotals() {
         for (let i = 1; i <= 3; i++) {
             const totalVentaSistema = calculateTotal([
@@ -111,12 +242,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             ]);
             document.getElementById(`caja${i}-venta-total`).value = totalVentaSistema.toFixed(2);
         }
-        
+
         const totalVentaEfectivo = calculateTotal(['caja1-venta-efectivo', 'caja2-venta-efectivo', 'caja3-venta-efectivo']);
         const totalVentaTarjeta = calculateTotal(['caja1-venta-tarjeta', 'caja2-venta-tarjeta', 'caja3-venta-tarjeta']);
         const totalMotorista = calculateTotal(['caja1-motorista', 'caja2-motorista', 'caja3-motorista']);
         const totalPedidosYa = calculateTotal(['caja1-pedidos-ya', 'caja2-pedidos-ya', 'caja3-pedidos-ya']);
-        
+
         document.getElementById('total-venta-efectivo').value = totalVentaEfectivo.toFixed(2);
         document.getElementById('total-venta-tarjeta').value = totalVentaTarjeta.toFixed(2);
         document.getElementById('total-motorista').value = totalMotorista.toFixed(2);
@@ -124,7 +255,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('total-sistema').value = (totalVentaEfectivo + totalVentaTarjeta + totalMotorista + totalPedidosYa).toFixed(2);
     }
 
-    // Función para actualizar los totales de la caja
     function updateCajaTotals() {
         for (let i = 1; i <= 3; i++) {
             const totalEfectivo = calculateTotal([
@@ -137,7 +267,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // Función para actualizar los datos ingresados por el encargado
     function updateEncargado() {
         for (let i = 1; i <= 3; i++) {
             document.getElementById(`encargado-caja${i}-venta-efectivo`).value = document.getElementById(`caja${i}-total-efectivo`)?.value || 0;
@@ -161,7 +290,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('total-encargado').value = totalEncargado.toFixed(2);
     }
 
-    // Función para actualizar las diferencias
     function updateDiferencia() {
         for (let i = 1; i <= 3; i++) {
             const efectivoSistema = parseFloat(document.getElementById(`caja${i}-venta-efectivo`)?.value || 0);
@@ -177,7 +305,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // Función para actualizar los totales de gastos
     function updateGastos() {
         const totalGastos = Array.from(document.querySelectorAll("#gastos-tbody tr"))
             .reduce((total, row) => {
@@ -193,7 +320,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('total-gastos').value = totalGastos.toFixed(2);
     }
 
-    // Función para actualizar los totales de pedidos
     function updatePedidos() {
         const totalPedidos = Array.from(document.querySelectorAll("#pedidos-tbody tr"))
             .reduce((total, row) => {
@@ -204,7 +330,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('total-pedidos').value = totalPedidos.toFixed(2);
     }
 
-    // Función para actualizar los datos del cuadro final
     function updateCuadroDatos() {
         const fechaHoy = new Date().toISOString().split('T')[0];
         document.getElementById('fecha-hoy').value = fechaHoy;
@@ -253,305 +378,129 @@ document.addEventListener("DOMContentLoaded", async () => {
         diferenciaTotalCuadroElem.value = (parseFloat(diferenciaEfectivoCuadroElem.value) + parseFloat(diferenciaTarjetaCuadroElem.value)).toFixed(2);
     }
 
-    // Event listeners para inputs que deben actualizar los totales
     document.querySelectorAll("input[type='number'], input[type='checkbox']").forEach(element => {
         element.addEventListener("input", updateTotals);
         element.addEventListener("change", updateTotals);
     });
 
-    // Función para cerrar un cuadre
-    document.getElementById('cerrar-cuadre-btn').addEventListener('click', async () => {
-        const idCuadre = document.getElementById('id-cuadre').value;
-        if (idCuadre) {
-            await db.collection("cuadres").doc(idCuadre).update({ cerrado: true });
-            alert("Cuadre cerrado correctamente");
-            showSection('cuadres-realizados-content');
-        }
-    });
-
-    // Función para descargar la imagen del cuadro de datos
-    document.getElementById('download-cuadro-img').addEventListener('click', async () => {
-        const cuadroDatos = document.getElementById('cuadro-datos');
-        html2canvas(cuadroDatos).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.href = imgData;
-            link.download = `cuadre-${document.getElementById('nombre-sucursal').value}-${document.getElementById('fecha-hoy').value}.png`;
-            link.click();
-        });
-    });
-
-    // Función para generar un reporte
     async function generateReport(type, resultadosId, totalValorId, filterId, searchId, startDateId, endDateId) {
         const querySnapshot = await db.collection("cuadres").get();
         const selectedSucursal = document.getElementById(filterId).value;
         const searchIdValue = document.getElementById(searchId).value.toLowerCase();
         const startDateValue = document.getElementById(startDateId).value;
         const endDateValue = document.getElementById(endDateId).value;
-        let reportData = [];
-        let totalValor = 0;
-        
+        const resultsTable = document.getElementById(resultadosId);
+        const totalValor = document.getElementById(totalValorId);
+
+        resultsTable.innerHTML = '';
+        let total = 0;
+
         querySnapshot.forEach(doc => {
             const data = doc.data();
-            const fechaCuadre = new Date(data.fechaCuadre);
-            const startDate = new Date(startDateValue);
-            const endDate = new Date(endDateValue);
-            const inDateRange = (!startDateValue || fechaCuadre >= startDate) && (!endDateValue || fechaCuadre <= endDate);
+            const docId = doc.id.toLowerCase();
+            const fechaCuadre = data.fechaCuadre || '';
+            const sucursal = data.sucursal || '';
 
-            if (
-                (selectedSucursal === "" || data.sucursal === selectedSucursal) &&
-                (searchIdValue === "" || (data.idCuadre && data.idCuadre.toString().toLowerCase().includes(searchIdValue))) &&
-                inDateRange &&
-                data[type]
-            ) {
-                reportData.push({
-                    fecha: data.fechaCuadre,
-                    sucursal: data.sucursal,
-                    idCuadre: data.idCuadre,
-                    valor: parseFloat(data[type]) || 0
-                });
-                totalValor += parseFloat(data[type]) || 0;
+            const isMatchingSucursal = !selectedSucursal || sucursal.toLowerCase() === selectedSucursal.toLowerCase();
+            const isMatchingId = !searchIdValue || docId.includes(searchIdValue);
+            const isMatchingDate = (!startDateValue || new Date(fechaCuadre) >= new Date(startDateValue)) && (!endDateValue || new Date(fechaCuadre) <= new Date(endDateValue));
+
+            if (isMatchingSucursal && isMatchingId && isMatchingDate) {
+                const row = resultsTable.insertRow();
+                const cellFecha = row.insertCell(0);
+                const cellSucursal = row.insertCell(1);
+                const cellIdCuadre = row.insertCell(2);
+                const cellValor = row.insertCell(3);
+
+                cellFecha.textContent = fechaCuadre;
+                cellSucursal.textContent = sucursal;
+                cellIdCuadre.textContent = data.idCuadre;
+                cellValor.textContent = data[type] || '0.00';
+
+                total += parseFloat(data[type] || 0);
             }
         });
 
-        const resultadosDiv = document.getElementById(resultadosId);
-        resultadosDiv.innerHTML = '';
-        
-        if (reportData.length > 0) {
-            reportData.forEach(rowData => {
-                const row = document.createElement('tr');
-                Object.values(rowData).forEach((cellData, index) => {
-                    const td = document.createElement('td');
-                    if (index === 3) {
-                        td.textContent = (typeof cellData === 'number') ? cellData.toLocaleString('es-GT', {
-                            style: 'currency',
-                            currency: 'GTQ',
-                            minimumFractionDigits: 2
-                        }) : cellData;
-                    } else {
-                        td.textContent = cellData;
-                    }
-                    row.appendChild(td);
-                });
-                resultadosDiv.appendChild(row);
-            });
-
-            if (document.getElementById(totalValorId)) {
-                document.getElementById(totalValorId).textContent = totalValor.toLocaleString('es-GT', {
-                    style: 'currency',
-                    currency: 'GTQ',
-                    minimumFractionDigits: 2
-                });
-            }
-        } else {
-            alert('No se encontraron datos.');
-        }
+        totalValor.textContent = total.toFixed(2);
     }
 
-    // Función para generar el reporte de totales
     async function generateTotalesReport() {
         const querySnapshot = await db.collection("cuadres").get();
-        let reportData = [];
-        let totals = {
-            totalEfectivo: 0,
-            totalTarjeta: 0,
-            totalMotorista: 0,
-            totalPedidos: 0,
-            totalGastos: 0
-        };
+        const resultsTable = document.getElementById('totales-resultados');
+        const totalEfectivo = document.getElementById('totales-total-efectivo');
+        const totalTarjeta = document.getElementById('totales-total-tarjeta');
+        const totalMotorista = document.getElementById('totales-total-motorista');
+        const totalPedidos = document.getElementById('totales-total-pedidos');
+        const totalGastos = document.getElementById('totales-total-gastos');
+
+        resultsTable.innerHTML = '';
+        let totalEfectivoSum = 0;
+        let totalTarjetaSum = 0;
+        let totalMotoristaSum = 0;
+        let totalPedidosSum = 0;
+        let totalGastosSum = 0;
 
         querySnapshot.forEach(doc => {
             const data = doc.data();
-            const totalEfectivo = parseFloat(data.totalEfectivo) || 0;
-            const totalTarjeta = parseFloat(data.totalTarjeta) || 0;
-            const totalMotorista = parseFloat(data.totalMotoristaAdmin) || 0;
-            const totalPedidos = parseFloat(data.totalPedidos) || 0;
-            const totalGastos = parseFloat(data.totalGastos) || 0;
+            const row = resultsTable.insertRow();
+            const cellFecha = row.insertCell(0);
+            const cellSucursal = row.insertCell(1);
+            const cellIdCuadre = row.insertCell(2);
+            const cellTotalEfectivo = row.insertCell(3);
+            const cellTotalTarjeta = row.insertCell(4);
+            const cellTotalMotorista = row.insertCell(5);
+            const cellTotalPedidos = row.insertCell(6);
+            const cellTotalGastos = row.insertCell(7);
 
-            reportData.push({
-                fecha: data.fechaCuadre,
-                sucursal: data.sucursal,
-                idCuadre: data.idCuadre,
-                totalEfectivo: totalEfectivo,
-                totalTarjeta: totalTarjeta,
-                totalMotorista: totalMotorista,
-                totalPedidos: totalPedidos,
-                totalGastos: totalGastos
-            });
+            cellFecha.textContent = data.fechaCuadre || '';
+            cellSucursal.textContent = data.sucursal || '';
+            cellIdCuadre.textContent = data.idCuadre || '';
+            cellTotalEfectivo.textContent = data.totalEfectivo || '0.00';
+            cellTotalTarjeta.textContent = data.totalTarjeta || '0.00';
+            cellTotalMotorista.textContent = data.totalMotoristaAdmin || '0.00';
+            cellTotalPedidos.textContent = data.totalPedidos || '0.00';
+            cellTotalGastos.textContent = data.totalGastos || '0.00';
 
-            totals.totalEfectivo += totalEfectivo;
-            totals.totalTarjeta += totalTarjeta;
-            totals.totalMotorista += totalMotorista;
-            totals.totalPedidos += totalPedidos;
-            totals.totalGastos += totalGastos;
+            totalEfectivoSum += parseFloat(data.totalEfectivo || 0);
+            totalTarjetaSum += parseFloat(data.totalTarjeta || 0);
+            totalMotoristaSum += parseFloat(data.totalMotoristaAdmin || 0);
+            totalPedidosSum += parseFloat(data.totalPedidos || 0);
+            totalGastosSum += parseFloat(data.totalGastos || 0);
         });
 
-        const resultadosDiv = document.getElementById('totales-resultados');
-        resultadosDiv.innerHTML = '';
-        if (reportData.length > 0) {
-            reportData.forEach(rowData => {
-                const row = document.createElement('tr');
-                Object.values(rowData).forEach((cellData, index) => {
-                    const td = document.createElement('td');
-                    if (index >= 3 && index <= 7) {
-                        td.textContent = (typeof cellData === 'number') ? cellData.toLocaleString('es-GT', {
-                            style: 'currency',
-                            currency: 'GTQ',
-                            minimumFractionDigits: 2
-                        }) : cellData;
-                    } else {
-                        td.textContent = cellData;
-                    }
-                    row.appendChild(td);
-                });
-                resultadosDiv.appendChild(row);
-            });
-
-            document.getElementById('totales-total-efectivo').textContent = totals.totalEfectivo.toLocaleString('es-GT', {
-                style: 'currency',
-                currency: 'GTQ',
-                minimumFractionDigits: 2
-            });
-            document.getElementById('totales-total-tarjeta').textContent = totals.totalTarjeta.toLocaleString('es-GT', {
-                style: 'currency',
-                currency: 'GTQ',
-                minimumFractionDigits: 2
-            });
-            document.getElementById('totales-total-motorista').textContent = totals.totalMotorista.toLocaleString('es-GT', {
-                style: 'currency',
-                currency: 'GTQ',
-                minimumFractionDigits: 2
-            });
-            document.getElementById('totales-total-pedidos').textContent = totals.totalPedidos.toLocaleString('es-GT', {
-                style: 'currency',
-                currency: 'GTQ',
-                minimumFractionDigits: 2
-            });
-            document.getElementById('totales-total-gastos').textContent = totals.totalGastos.toLocaleString('es-GT', {
-                style: 'currency',
-                currency: 'GTQ',
-                minimumFractionDigits: 2
-            });
-        } else {
-            alert('No se encontraron datos.');
-        }
+        totalEfectivo.textContent = totalEfectivoSum.toFixed(2);
+        totalTarjeta.textContent = totalTarjetaSum.toFixed(2);
+        totalMotorista.textContent = totalMotoristaSum.toFixed(2);
+        totalPedidos.textContent = totalPedidosSum.toFixed(2);
+        totalGastos.textContent = totalGastosSum.toFixed(2);
     }
 
-    // Función para añadir los event listeners para los reportes
     function addEventListenersForReport(type, resultadosId, totalValorId, filterId, searchId, startDateId, endDateId) {
-        document.getElementById(filterId).addEventListener('change', async () => {
-            await generateReport(type, resultadosId, totalValorId, filterId, searchId, startDateId, endDateId);
-        });
-        document.getElementById(searchId).addEventListener('input', async () => {
-            await generateReport(type, resultadosId, totalValorId, filterId, searchId, startDateId, endDateId);
-        });
-        document.getElementById(startDateId).addEventListener('change', async () => {
-            await generateReport(type, resultadosId, totalValorId, filterId, searchId, startDateId, endDateId);
-        });
-        document.getElementById(endDateId).addEventListener('change', async () => {
-            await generateReport(type, resultadosId, totalValorId, filterId, searchId, startDateId, endDateId);
-        });
+        document.getElementById(filterId).addEventListener('change', () => generateReport(type, resultadosId, totalValorId, filterId, searchId, startDateId, endDateId));
+        document.getElementById(searchId).addEventListener('input', () => generateReport(type, resultadosId, totalValorId, filterId, searchId, startDateId, endDateId));
+        document.getElementById(startDateId).addEventListener('change', () => generateReport(type, resultadosId, totalValorId, filterId, searchId, startDateId, endDateId));
+        document.getElementById(endDateId).addEventListener('change', () => generateReport(type, resultadosId, totalValorId, filterId, searchId, startDateId, endDateId));
     }
 
-    // Botones para generar los diferentes reportes
-    document.getElementById('ventas-efectivo-btn').addEventListener('click', async () => {
-        await generateReport('totalEfectivo', 'ventas-efectivo-resultados', 'ventas-efectivo-total-valor', 'filtro-sucursal-ventas-efectivo', 'search-id-ventas-efectivo', 'start-date-ventas-efectivo', 'end-date-ventas-efectivo');
-        showSection('ventas-efectivo-content');
-    });
-
-    document.getElementById('ventas-tarjeta-btn').addEventListener('click', async () => {
-        await generateReport('totalTarjeta', 'ventas-tarjeta-resultados', 'ventas-tarjeta-total-valor', 'filtro-sucursal-ventas-tarjeta', 'search-id-ventas-tarjeta', 'start-date-ventas-tarjeta', 'end-date-ventas-tarjeta');
-        showSection('ventas-tarjeta-content');
-    });
-
-    document.getElementById('ventas-motorista-btn').addEventListener('click', async () => {
-        await generateReport('totalMotoristaAdmin', 'ventas-motorista-resultados', 'ventas-motorista-total-valor', 'filtro-sucursal-ventas-motorista', 'search-id-ventas-motorista', 'start-date-ventas-motorista', 'end-date-ventas-motorista');
-        showSection('ventas-motorista-content');
-    });
-
-    document.getElementById('ventas-pedidos-ya-btn').addEventListener('click', async () => {
-        await generateReport('totalPedidos', 'ventas-pedidos-ya-resultados', 'ventas-pedidos-ya-total-valor', 'filtro-sucursal-ventas-pedidos-ya', 'search-id-ventas-pedidos-ya', 'start-date-ventas-pedidos-ya', 'end-date-ventas-pedidos-ya');
-        showSection('ventas-pedidos-ya-content');
-    });
-
-    document.getElementById('gastos-btn').addEventListener('click', async () => {
-        await generateReport('totalGastos', 'gastos-resultados', 'gastos-total-valor', 'filtro-sucursal-gastos', 'search-id-gastos', 'start-date-gastos', 'end-date-gastos');
-        showSection('gastos-content');
-    });
-
-    document.getElementById('totales-btn').addEventListener('click', async () => {
-        await generateTotalesReport();
-        showSection('totales-content');
-    });
-
-    // Añadir event listeners para los reportes
-    addEventListenersForReport('totalEfectivo', 'ventas-efectivo-resultados', 'ventas-efectivo-total-valor', 'filtro-sucursal-ventas-efectivo', 'search-id-ventas-efectivo', 'start-date-ventas-efectivo', 'end-date-ventas-efectivo');
-    addEventListenersForReport('totalTarjeta', 'ventas-tarjeta-resultados', 'ventas-tarjeta-total-valor', 'filtro-sucursal-ventas-tarjeta', 'search-id-ventas-tarjeta', 'start-date-ventas-tarjeta', 'end-date-ventas-tarjeta');
-    addEventListenersForReport('totalMotoristaAdmin', 'ventas-motorista-resultados', 'ventas-motorista-total-valor', 'filtro-sucursal-ventas-motorista', 'search-id-ventas-motorista', 'start-date-ventas-motorista', 'end-date-ventas-motorista');
-    addEventListenersForReport('totalPedidos', 'ventas-pedidos-ya-resultados', 'ventas-pedidos-ya-total-valor', 'filtro-sucursal-ventas-pedidos-ya', 'search-id-ventas-pedidos-ya', 'start-date-ventas-pedidos-ya', 'end-date-ventas-pedidos-ya');
-    addEventListenersForReport('totalGastos', 'gastos-resultados', 'gastos-total-valor', 'filtro-sucursal-gastos', 'search-id-gastos', 'start-date-gastos', 'end-date-gastos');
-
-    // Función para exportar tablas a PDF
-    function exportTableToPDF(tableId, title) {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF();
-        const table = document.getElementById(tableId);
-
-        html2canvas(table).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            doc.text(title, 20, 20);
-            doc.addImage(imgData, 'PNG', 20, 30, 170, 0);
-            doc.save(`${title}.pdf`);
+    window.addGasto = function () {
+        const row = document.createElement('tr');
+        const cells = ['<input type="text" name="descripcion" placeholder="Descripción">', '<input type="text" name="no-factura" placeholder="No. Factura">', '<input type="number" name="cantidad" step="0.01" oninput="updateTotals()">', '<input type="number" name="valor" step="0.01" oninput="updateTotals()">', '<input type="number" name="total-gasto" readonly>'];
+        cells.forEach(cellHTML => {
+            const cell = document.createElement('td');
+            cell.innerHTML = cellHTML;
+            row.appendChild(cell);
         });
-    }
+        document.getElementById('gastos-tbody').insertBefore(row, document.getElementById('gastos-tbody').lastElementChild);
+    };
 
-    // Botones para exportar reportes a PDF
-    document.getElementById('export-ventas-efectivo-pdf').addEventListener('click', () => {
-        exportTableToPDF('ventas-efectivo-table', 'Ventas Efectivo');
-    });
-
-    document.getElementById('export-ventas-tarjeta-pdf').addEventListener('click', () => {
-        exportTableToPDF('ventas-tarjeta-table', 'Ventas Tarjeta');
-    });
-
-    document.getElementById('export-ventas-motorista-pdf').addEventListener('click', () => {
-        exportTableToPDF('ventas-motorista-table', 'Ventas Motorista');
-    });
-
-    document.getElementById('export-ventas-pedidos-ya-pdf').addEventListener('click', () => {
-        exportTableToPDF('ventas-pedidos-ya-table', 'Ventas Pedidos Ya');
-    });
-
-    document.getElementById('export-gastos-pdf').addEventListener('click', () => {
-        exportTableToPDF('gastos-table', 'Gastos');
-    });
-
-    updateTotals();
+    window.addTicket = function () {
+        const row = document.createElement('tr');
+        const cells = ['<input type="text" name="no-ticket" placeholder="No. Ticket">', '<input type="number" name="valor-ticket" step="0.01" oninput="updateTotals()">'];
+        cells.forEach(cellHTML => {
+            const cell = document.createElement('td');
+            cell.innerHTML = cellHTML;
+            row.appendChild(cell);
+        });
+        document.getElementById('pedidos-tbody').insertBefore(row, document.getElementById('pedidos-tbody').lastElementChild);
+    };
 });
-
-// Función para agregar una fila de gasto
-function addGasto() {
-    const tableBody = document.getElementById("gastos-tbody");
-    const row = document.createElement("tr");
-    row.innerHTML = `
-        <td><input type="text" oninput="updateTotals()"></td>
-        <td><input type="text" oninput="updateTotals()"></td>
-        <td><input type="number" step="0.01" oninput="updateTotals()"></td>
-        <td><input type="number" step="0.01" oninput="updateTotals()"></td>
-        <td><input type="number" step="0.01" readonly></td>
-    `;
-    tableBody.insertBefore(row, tableBody.lastElementChild.previousElementSibling);
-    updateTotals();
-}
-
-// Función para agregar una fila de ticket
-function addTicket() {
-    const tableBody = document.getElementById("pedidos-tbody");
-    const row = document.createElement("tr");
-    row.innerHTML = `
-        <td><input type="text" name="no-ticket" oninput="updateTotals()"></td>
-        <td><input type="number" name="valor-ticket" step="0.01" oninput="updateTotals()"></td>
-    `;
-    tableBody.insertBefore(row, tableBody.lastElementChild.previousElementSibling);
-    updateTotals();
-}
