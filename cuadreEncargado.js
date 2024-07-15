@@ -74,8 +74,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 { id: `caja${i}-10`, multiplier: 10 },
                 { id: `caja${i}-5`, multiplier: 5 },
                 { id: `caja${i}-1`, multiplier: 1 }
-            ]);
-
+            ]) - parseFloat(document.getElementById(`caja${i}-apertura`)?.value || 0);
             const totalEfectivoElem = document.getElementById(`caja${i}-total-efectivo`);
             const totalVentaCajeroElem = document.getElementById(`caja${i}-total-venta-cajero`);
             if (totalEfectivoElem) totalEfectivoElem.value = totalEfectivo.toFixed(2);
@@ -84,17 +83,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                 parseFloat(document.getElementById(`caja${i}-motorista-admin`)?.value || 0)).toFixed(2);
         }
 
-        const total100 = calculateTotalSum(['caja1-100', 'caja2-100', 'caja3-100']) * 100;
-        const total50 = calculateTotalSum(['caja1-50', 'caja2-50', 'caja3-50']) * 50;
-        const total20 = calculateTotalSum(['caja1-20', 'caja2-20', 'caja3-20']) * 20;
-        const total10 = calculateTotalSum(['caja1-10', 'caja2-10', 'caja3-10']) * 10;
-        const total5 = calculateTotalSum(['caja1-5', 'caja2-5', 'caja3-5']) * 5;
-        const total1 = calculateTotalSum(['caja1-1', 'caja2-1', 'caja3-1']);
-        const totalApertura = calculateTotalSum(['caja1-apertura', 'caja2-apertura', 'caja3-apertura']);
-        const totalEfectivo = calculateTotalSum(['caja1-total-efectivo', 'caja2-total-efectivo', 'caja3-total-efectivo']);
-        const totalTarjeta = calculateTotalSum(['caja1-tarjeta-admin', 'caja2-tarjeta-admin', 'caja3-tarjeta-admin']);
-        const totalMotoristaAdmin = calculateTotalSum(['caja1-motorista-admin', 'caja2-motorista-admin', 'caja3-motorista-admin']);
-        const totalVentaCajero = calculateTotalSum(['caja1-total-venta-cajero', 'caja2-total-venta-cajero', 'caja3-total-venta-cajero']);
+        const total100 = calculateTotal([{ id: 'caja1-100', multiplier: 100 }, { id: 'caja2-100', multiplier: 100 }, { id: 'caja3-100', multiplier: 100 }]);
+        const total50 = calculateTotal([{ id: 'caja1-50', multiplier: 50 }, { id: 'caja2-50', multiplier: 50 }, { id: 'caja3-50', multiplier: 50 }]);
+        const total20 = calculateTotal([{ id: 'caja1-20', multiplier: 20 }, { id: 'caja2-20', multiplier: 20 }, { id: 'caja3-20', multiplier: 20 }]);
+        const total10 = calculateTotal([{ id: 'caja1-10', multiplier: 10 }, { id: 'caja2-10', multiplier: 10 }, { id: 'caja3-10', multiplier: 10 }]);
+        const total5 = calculateTotal([{ id: 'caja1-5', multiplier: 5 }, { id: 'caja2-5', multiplier: 5 }, { id: 'caja3-5', multiplier: 5 }]);
+        const total1 = calculateTotal([{ id: 'caja1-1', multiplier: 1 }, { id: 'caja2-1', multiplier: 1 }, { id: 'caja3-1', multiplier: 1 }]);
+        const totalApertura = calculateTotal([{ id: 'caja1-apertura' }, { id: 'caja2-apertura' }, { id: 'caja3-apertura' }]);
+        const totalEfectivo = calculateTotal([{ id: 'caja1-total-efectivo' }, { id: 'caja2-total-efectivo' }, { id: 'caja3-total-efectivo' }]);
+        const totalTarjeta = calculateTotal([{ id: 'caja1-tarjeta-admin' }, { id: 'caja2-tarjeta-admin' }, { id: 'caja3-tarjeta-admin' }]);
+        const totalMotoristaAdmin = calculateTotal([{ id: 'caja1-motorista-admin' }, { id: 'caja2-motorista-admin' }, { id: 'caja3-motorista-admin' }]);
+        const totalVentaCajero = calculateTotal([{ id: 'caja1-total-venta-cajero' }, { id: 'caja2-total-venta-cajero' }, { id: 'caja3-total-venta-cajero' }]);
 
         setValue('total-100', total100);
         setValue('total-50', total50);
@@ -109,16 +108,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         setValue('total-venta-cajero', totalVentaCajero);
     }
 
-    // Función para calcular el total de los campos numéricos con multiplicador
-    function calculateTotal(idsWithMultipliers) {
-        return idsWithMultipliers.reduce((sum, item) => {
-            return sum + (parseFloat(document.getElementById(item.id)?.value || 0) * item.multiplier);
+    // Función para calcular el total de los campos numéricos
+    function calculateTotal(fields) {
+        return fields.reduce((sum, field) => {
+            const value = parseFloat(document.getElementById(field.id)?.value || 0);
+            return sum + (value * (field.multiplier || 1));
         }, 0);
-    }
-
-    // Función para calcular el total sumando los valores de los campos numéricos
-    function calculateTotalSum(ids) {
-        return ids.reduce((sum, id) => sum + parseFloat(document.getElementById(id)?.value || 0), 0);
     }
 
     // Función para establecer el valor de un campo
@@ -156,11 +151,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         const totalPedidosElem = document.getElementById('total-pedidos');
         const debeAyerElem = document.getElementById('debe-ayer');
 
-        const totalEfectivo = calculateTotalSum(totalEfectivoElems);
-        const totalMotorista = calculateTotalSum(totalMotoristaElems);
+        const totalEfectivo = calculateTotal(totalEfectivoElems);
+        const totalMotorista = calculateTotal(totalMotoristaElems);
         const totalGastos = parseFloat(totalGastosElem?.value || 0);
         const totalPedidos = parseFloat(totalPedidosElem?.value || 0);
-        const cajaChicaDiaSiguiente = calculateTotalSum(['caja1-apertura', 'caja2-apertura', 'caja3-apertura']);
+        const cajaChicaDiaSiguiente = calculateTotal([{ id: 'caja1-apertura' }, { id: 'caja2-apertura' }, { id: 'caja3-apertura' }]);
         const cantidadADepositar = totalEfectivo - totalGastos + (parseFloat(debeAyerElem?.value || 0));
 
         setValue('cantidad-depositar', cantidadADepositar);
@@ -180,13 +175,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         setValue('fecha-cuadre-final', fechaCuadre);
         setValue('caja-chica-inicial-final', cajaChicaInicial);
 
-        const totalEfectivo = calculateTotalSum(['caja1-total-efectivo', 'caja2-total-efectivo', 'caja3-total-efectivo']);
-        const totalMotorista = calculateTotalSum(['caja1-motorista-admin', 'caja2-motorista-admin', 'caja3-motorista-admin']);
-        const totalTarjeta = calculateTotalSum(['caja1-tarjeta-admin', 'caja2-tarjeta-admin', 'caja3-tarjeta-admin']);
+        const totalEfectivo = calculateTotal([{ id: 'caja1-total-efectivo' }, { id: 'caja2-total-efectivo' }, { id: 'caja3-total-efectivo' }]);
+        const totalMotorista = calculateTotal([{ id: 'caja1-motorista-admin' }, { id: 'caja2-motorista-admin' }, { id: 'caja3-motorista-admin' }]);
+        const totalTarjeta = calculateTotal([{ id: 'caja1-tarjeta-admin' }, { id: 'caja2-tarjeta-admin' }, { id: 'caja3-tarjeta-admin' }]);
         const totalPedidos = parseFloat(document.getElementById('total-pedidos').value || 0);
         const totalVenta = totalEfectivo + totalTarjeta;
         const totalGastos = parseFloat(document.getElementById('total-gastos').value || 0);
-        const cajaChicaDiaSiguiente = calculateTotalSum(['caja1-apertura', 'caja2-apertura', 'caja3-apertura']);
+        const cajaChicaDiaSiguiente = calculateTotal([{ id: 'caja1-apertura' }, { id: 'caja2-apertura' }, { id: 'caja3-apertura' }]);
         const debeAyer = parseFloat(document.getElementById('debe-ayer').value || 0);
         const totalADepositar = totalEfectivo - totalGastos + debeAyer;
 
@@ -676,7 +671,6 @@ document.addEventListener("DOMContentLoaded", () => {
 window.updateTotals = function() {
     updateCajaTotals();
     updateGastos();
-    // No llamamos a updatePedidos aquí porque no queremos cambiar el valor automáticamente
     updateDeposito();
     updateCuadroDatos();
 }
@@ -713,6 +707,7 @@ const resetForm = async () => {
     setDateToToday();
     unlockAllFields();
 };
+
 
 // Función para manejar el checkbox de "No se usa" en las cajas
 function noSeUsaHandler(filaId) {
