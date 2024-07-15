@@ -17,8 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     document.getElementById('sucursal').value = sucursal;
-    document.getElementById('sucursal-final').value = sucursal;
-    document.getElementById('nombre-sucursal-final').textContent = sucursal;
+    document.getElementById('nombre-sucursal-final').textContent = `${sucursal} - ${new Date().toISOString().split('T')[0]}`;
 
     // Obtener el último ID de cuadre de Firestore
     const fetchLatestIdCuadre = async () => {
@@ -35,27 +34,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await fetchLatestIdCuadre(); // Llamar a la función para obtener el último ID de cuadre
 
-    // Establecer la fecha al día anterior
-    const setDateToYesterday = () => {
+    // Establecer la fecha al día de hoy
+    const setDateToToday = () => {
         const date = new Date();
-        date.setDate(date.getDate() - 1);
-        const yesterday = date.toISOString().split('T')[0];
-        document.getElementById('fecha-cuadre').value = yesterday;
-        document.getElementById('fecha-hoy').value = yesterday;
+        const today = date.toISOString().split('T')[0];
+        document.getElementById('fecha-cuadre').value = today;
+        document.getElementById('fecha-cuadre-final').value = today;
     };
 
     // Restablecer el formulario
     const resetForm = async () => {
         document.getElementById('sucursal').value = sucursal || "";
         document.getElementById('caja-chica-inicial').value = "";
-        document.getElementById('fecha-cuadre').value = "";
         document.querySelectorAll("input[type='number']").forEach(input => input.value = "");
         await fetchLatestIdCuadre();
-        setDateToYesterday();
+        setDateToToday();
         unlockAllFields();
     };
 
-    setDateToYesterday(); // Establecer la fecha al día anterior
+    setDateToToday(); // Establecer la fecha al día de hoy
     if (idCuadreField) idCuadreField.textContent = idCuadre;
     if (idCuadreFinalField) idCuadreFinalField.textContent = idCuadre;
 
@@ -82,11 +79,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 parseFloat(document.getElementById(`caja${i}-motorista-admin`)?.value || 0)).toFixed(2);
         }
 
-        const total100 = calculateTotal(['caja1-100', 'caja2-100', 'caja3-100']);
-        const total50 = calculateTotal(['caja1-50', 'caja2-50', 'caja3-50']);
-        const total20 = calculateTotal(['caja1-20', 'caja2-20', 'caja3-20']);
-        const total10 = calculateTotal(['caja1-10', 'caja2-10', 'caja3-10']);
-        const total5 = calculateTotal(['caja1-5', 'caja2-5', 'caja3-5']);
+        const total100 = calculateTotal(['caja1-100', 'caja2-100', 'caja3-100']) * 100;
+        const total50 = calculateTotal(['caja1-50', 'caja2-50', 'caja3-50']) * 50;
+        const total20 = calculateTotal(['caja1-20', 'caja2-20', 'caja3-20']) * 20;
+        const total10 = calculateTotal(['caja1-10', 'caja2-10', 'caja3-10']) * 10;
+        const total5 = calculateTotal(['caja1-5', 'caja2-5', 'caja3-5']) * 5;
         const total1 = calculateTotal(['caja1-1', 'caja2-1', 'caja3-1']);
         const totalApertura = calculateTotal(['caja1-apertura', 'caja2-apertura', 'caja3-apertura']);
         const totalEfectivo = calculateTotal(['caja1-total-efectivo', 'caja2-total-efectivo', 'caja3-total-efectivo']);
@@ -136,6 +133,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             return sum + rowTotal;
         }, 0);
         setValue('total-gastos', totalGastos);
+        setValue('total-gastos-final', totalGastos);
     }
 
     // Función para actualizar los totales de los pedidos
@@ -158,21 +156,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Función para actualizar el total a depositar
     function updateDeposito() {
         const totalEfectivoElems = ['caja1-total-efectivo', 'caja2-total-efectivo', 'caja3-total-efectivo'];
+        const totalMotoristaElems = ['caja1-motorista-admin', 'caja2-motorista-admin', 'caja3-motorista-admin'];
         const totalGastosElem = document.getElementById('total-gastos');
         const totalPedidosElem = document.getElementById('total-pedidos');
-        const cajaChicaDiaSiguienteElem = document.getElementById('caja-chica-dia-siguiente');
-        const cantidadDepositarElem = document.getElementById('cantidad-depositar');
+        const debeAyerElem = document.getElementById('debe-ayer');
 
         const totalEfectivo = calculateTotal(totalEfectivoElems);
+        const totalMotorista = calculateTotal(totalMotoristaElems);
         const totalGastos = parseFloat(totalGastosElem?.value || 0);
         const totalPedidos = parseFloat(totalPedidosElem?.value || 0);
-        const cantidadADepositar = totalEfectivo - totalGastos - totalPedidos;
-        setValue('cantidad-depositar', cantidadADepositar);
+        const cajaChicaDiaSiguiente = calculateTotal(['caja1-apertura', 'caja2-apertura', 'caja3-apertura']);
+        const cantidadADepositar = totalEfectivo - totalGastos + (parseFloat(debeAyerElem?.value || 0));
 
-        const totalTarjeta = calculateTotal(['caja1-tarjeta-admin', 'caja2-tarjeta-admin', 'caja3-tarjeta-admin']);
-        const totalMotorista = calculateTotal(['caja1-motorista-admin', 'caja2-motorista-admin', 'caja3-motorista-admin']);
-        const totalDepositarBanco = (totalEfectivo + totalTarjeta + totalMotorista) - totalGastos - totalPedidos - parseFloat(cajaChicaDiaSiguienteElem?.value || 0);
-        setValue('total-depositar-banco-final', totalDepositarBanco);
+        setValue('cantidad-depositar', cantidadADepositar);
+        setValue('total-efectivo-completo', totalEfectivo + totalMotorista);
+        setValue('total-depositar-banco-final', cantidadADepositar);
     }
 
     // Función para actualizar los datos del cuadro final
@@ -182,23 +180,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         const idCuadre = document.getElementById('id-cuadre').textContent;
         const cajaChicaInicial = parseFloat(document.getElementById('caja-chica-inicial').value || 0);
 
-        setTextContent('nombre-sucursal-final', sucursal);
+        setTextContent('nombre-sucursal-final', `${sucursal} - ${fechaCuadre}`);
         setTextContent('id-cuadre-final', idCuadre);
-        setValue('sucursal-final', sucursal);
-        setValue('fecha-hoy', fechaCuadre);
+        setValue('fecha-cuadre-final', fechaCuadre);
         setValue('caja-chica-inicial-final', cajaChicaInicial);
 
         const totalEfectivo = calculateTotal(['caja1-total-efectivo', 'caja2-total-efectivo', 'caja3-total-efectivo']);
+        const totalMotorista = calculateTotal(['caja1-motorista-admin', 'caja2-motorista-admin', 'caja3-motorista-admin']);
         const totalTarjeta = calculateTotal(['caja1-tarjeta-admin', 'caja2-tarjeta-admin', 'caja3-tarjeta-admin']);
-        const totalDepositarBanco = parseFloat(document.getElementById('total-depositar-banco-final').value || 0);
-        const totalPedidos = parseFloat(document.getElementById('total-pedidos-final').value || 0);
-        const cajaChicaDiaSiguiente = parseFloat(document.getElementById('caja-chica-dia-siguiente').value || 0);
+        const totalPedidos = parseFloat(document.getElementById('total-pedidos').value || 0);
+        const totalVenta = totalEfectivo + totalTarjeta;
+        const totalGastos = parseFloat(document.getElementById('total-gastos').value || 0);
+        const cajaChicaDiaSiguiente = calculateTotal(['caja1-apertura', 'caja2-apertura', 'caja3-apertura']);
+        const debeAyer = parseFloat(document.getElementById('debe-ayer').value || 0);
+        const totalADepositar = totalEfectivo - totalGastos + debeAyer;
 
         setValue('total-efectivo-final', totalEfectivo);
-        setValue('total-banco-final', totalTarjeta);
-        setValue('total-depositar-banco-final', totalDepositarBanco);
-        setValue('total-pedidos-final', totalPedidos);
-        setValue('caja-chica-dia-siguiente-final', cajaChicaDiaSiguiente);
+        setValue('total-motorista-final', totalMotorista);
+        setValue('total-tarjeta-final', totalTarjeta);
+        setValue('total-efectivo-completo', totalEfectivo + totalMotorista);
+        setValue('total-tarjeta-completo', totalTarjeta);
+        setValue('total-venta-final', totalVenta);
+        setValue('total-gastos-final', totalGastos);
+        setValue('caja-chica-dia-siguiente', cajaChicaDiaSiguiente);
+        setValue('debe-ayer', debeAyer);
+        setValue('total-depositar-banco-final', totalADepositar);
     }
 
     // Función para establecer el contenido de texto de un elemento
@@ -251,7 +257,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Generar nombre de archivo
     const generateFileName = () => {
         const sucursal = document.getElementById('nombre-sucursal-final').textContent || 'sucursal';
-        const fechaHoy = document.getElementById('fecha-hoy').value;
+        const fechaHoy = new Date().toISOString().split('T')[0];
         return `cuadre-${sucursal}-${fechaHoy}`;
     };
 
@@ -355,26 +361,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById('cuadres-realizados-btn').addEventListener('click', async () => {
         document.getElementById('cuadre-content').style.display = 'none';
         document.getElementById('cuadres-realizados-content').style.display = 'block';
-        const cuadresTarjetas = document.getElementById('cuadres-tarjetas');
-        cuadresTarjetas.innerHTML = '';
-        const querySnapshot = await db.collection("cuadres").where("sucursal", "==", sucursal).get();
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            const card = document.createElement('div');
-            card.className = 'cuadre-card';
-            card.innerHTML = `
-                <h3>ID Cuadre: ${data.idCuadre} - ${data.sucursal}</h3>
-                <p>Fecha: ${data.fechaCuadre}</p>
-                <p>Total Efectivo: ${data.totalEfectivo}</p>
-                <p>Total Banco: ${data.totalTarjeta}</p>
-                <p>Total Motorista: ${data.totalMotoristaAdmin}</p>
-                <p>Total Pedidos Ya: ${data.totalPedidos}</p>
-                <button onclick="mostrarCuadre('${doc.id}')">Mostrar Cuadre</button>
-                <button onclick="eliminarCuadre('${doc.id}')">Eliminar Cuadre</button>
-                <button onclick="descargarCuadro('${doc.id}')">Descargar Cuadro de Datos</button>
-            `;
-            cuadresTarjetas.appendChild(card);
-        });
+        await mostrarCuadresRealizados();
     });
 
     // Guardar cuadre
@@ -392,72 +379,65 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     confirmarCuadreBtn.addEventListener('click', async () => {
+        const getFieldValue = (id) => document.getElementById(id)?.value || "";
+
         const data = {
             idCuadre: parseInt(document.getElementById('id-cuadre').textContent),
-            sucursal: document.getElementById('sucursal').value,
-            cajaChicaInicial: document.getElementById('caja-chica-inicial').value,
-            fechaCuadre: document.getElementById('fecha-cuadre').value,
-            caja1_100: document.getElementById('caja1-100').value,
-            caja1_50: document.getElementById('caja1-50').value,
-            caja1_20: document.getElementById('caja1-20').value,
-            caja1_10: document.getElementById('caja1-10').value,
-            caja1_5: document.getElementById('caja1-5').value,
-            caja1_1: document.getElementById('caja1-1').value,
-            caja1_apertura: document.getElementById('caja1-apertura').value,
-            caja1_total_efectivo: document.getElementById('caja1-total-efectivo').value,
-            caja1_tarjeta_admin: document.getElementById('caja1-tarjeta-admin').value,
-            caja1_motorista_admin: document.getElementById('caja1-motorista-admin').value,
-            caja1_total_venta_cajero: document.getElementById('caja1-total-venta-cajero').value,
-            caja2_100: document.getElementById('caja2-100').value,
-            caja2_50: document.getElementById('caja2-50').value,
-            caja2_20: document.getElementById('caja2-20').value,
-            caja2_10: document.getElementById('caja2-10').value,
-            caja2_5: document.getElementById('caja2-5').value,
-            caja2_1: document.getElementById('caja2-1').value,
-            caja2_apertura: document.getElementById('caja2-apertura').value,
-            caja2_total_efectivo: document.getElementById('caja2-total-efectivo').value,
-            caja2_tarjeta_admin: document.getElementById('caja2-tarjeta-admin').value,
-            caja2_motorista_admin: document.getElementById('caja2-motorista-admin').value,
-            caja2_total_venta_cajero: document.getElementById('caja2-total-venta-cajero').value,
-            caja3_100: document.getElementById('caja3-100').value,
-            caja3_50: document.getElementById('caja3-50').value,
-            caja3_20: document.getElementById('caja3-20').value,
-            caja3_10: document.getElementById('caja3-10').value,
-            caja3_5: document.getElementById('caja3-5').value,
-            caja3_1: document.getElementById('caja3-1').value,
-            caja3_apertura: document.getElementById('caja3-apertura').value,
-            caja3_total_efectivo: document.getElementById('caja3-total-efectivo').value,
-            caja3_tarjeta_admin: document.getElementById('caja3-tarjeta-admin').value,
-            caja3_motorista_admin: document.getElementById('caja3-motorista-admin').value,
-            caja3_total_venta_cajero: document.getElementById('caja3-total-venta-cajero').value,
-            total100: document.getElementById('total-100').value,
-            total50: document.getElementById('total-50').value,
-            total20: document.getElementById('total-20').value,
-            total10: document.getElementById('total-10').value,
-            total5: document.getElementById('total-5').value,
-            total1: document.getElementById('total-1').value,
-            totalApertura: document.getElementById('total-apertura').value,
-            totalEfectivo: document.getElementById('total-efectivo').value,
-            totalTarjeta: document.getElementById('total-tarjeta').value,
-            totalMotoristaAdmin: document.getElementById('total-motorista-admin').value,
-            totalVentaCajero: document.getElementById('total-venta-cajero').value,
-            totalGastos: document.getElementById('total-gastos').value,
-            totalDepositarBanco: document.getElementById('total-depositar-banco-final').value,
-            cajaChicaDiaSiguiente: document.getElementById('caja-chica-dia-siguiente').value,
-            cantidadDepositar: document.getElementById('cantidad-depositar').value,
-            totalPedidos: document.getElementById('total-pedidos').value,
+            sucursal: getFieldValue('sucursal'),
+            cajaChicaInicial: getFieldValue('caja-chica-inicial'),
+            fechaCuadre: getFieldValue('fecha-cuadre'),
+            caja1_100: getFieldValue('caja1-100'),
+            caja1_50: getFieldValue('caja1-50'),
+            caja1_20: getFieldValue('caja1-20'),
+            caja1_10: getFieldValue('caja1-10'),
+            caja1_5: getFieldValue('caja1-5'),
+            caja1_1: getFieldValue('caja1-1'),
+            caja1_apertura: getFieldValue('caja1-apertura'),
+            caja1_total_efectivo: getFieldValue('caja1-total-efectivo'),
+            caja1_tarjeta_admin: getFieldValue('caja1-tarjeta-admin'),
+            caja1_motorista_admin: getFieldValue('caja1-motorista-admin'),
+            caja1_total_venta_cajero: getFieldValue('caja1-total-venta-cajero'),
+            caja2_100: getFieldValue('caja2-100'),
+            caja2_50: getFieldValue('caja2-50'),
+            caja2_20: getFieldValue('caja2-20'),
+            caja2_10: getFieldValue('caja2-10'),
+            caja2_5: getFieldValue('caja2-5'),
+            caja2_1: getFieldValue('caja2-1'),
+            caja2_apertura: getFieldValue('caja2-apertura'),
+            caja2_total_efectivo: getFieldValue('caja2-total-efectivo'),
+            caja2_tarjeta_admin: getFieldValue('caja2-tarjeta-admin'),
+            caja2_motorista_admin: getFieldValue('caja2-motorista-admin'),
+            caja2_total_venta_cajero: getFieldValue('caja2-total-venta-cajero'),
+            caja3_100: getFieldValue('caja3-100'),
+            caja3_50: getFieldValue('caja3-50'),
+            caja3_20: getFieldValue('caja3-20'),
+            caja3_10: getFieldValue('caja3-10'),
+            caja3_5: getFieldValue('caja3-5'),
+            caja3_1: getFieldValue('caja3-1'),
+            caja3_apertura: getFieldValue('caja3-apertura'),
+            caja3_total_efectivo: getFieldValue('caja3-total-efectivo'),
+            caja3_tarjeta_admin: getFieldValue('caja3-tarjeta-admin'),
+            caja3_motorista_admin: getFieldValue('caja3-motorista-admin'),
+            caja3_total_venta_cajero: getFieldValue('caja3-total-venta-cajero'),
+            total100: getFieldValue('total-100'),
+            total50: getFieldValue('total-50'),
+            total20: getFieldValue('total-20'),
+            total10: getFieldValue('total-10'),
+            total5: getFieldValue('total-5'),
+            total1: getFieldValue('total-1'),
+            totalApertura: getFieldValue('total-apertura'),
+            totalEfectivo: getFieldValue('total-efectivo'),
+            totalTarjeta: getFieldValue('total-tarjeta'),
+            totalMotoristaAdmin: getFieldValue('total-motorista-admin'),
+            totalVentaCajero: getFieldValue('total-venta-cajero'),
+            totalGastos: getFieldValue('total-gastos'),
+            totalDepositarBanco: getFieldValue('total-depositar-banco-final'),
+            cajaChicaDiaSiguiente: getFieldValue('caja-chica-dia-siguiente'),
+            cantidadDepositar: getFieldValue('cantidad-depositar'),
+            totalPedidos: getFieldValue('total-pedidos'),
+            debeAyer: getFieldValue('debe-ayer'),
             pedidosYa: []
         };
-
-        // Obtener detalles de los pedidos
-        const filasPedidos = document.querySelectorAll("#pedidos-tbody tr");
-        filasPedidos.forEach(row => {
-            const ticket = row.querySelector("input[data-type='ticket']")?.value || "";
-            const totalPedido = parseFloat(row.querySelector("input[data-type='total-pedido']")?.value || 0);
-            if (ticket && totalPedido) {
-                data.pedidosYa.push({ ticket, totalPedido });
-            }
-        });
 
         // Guardar datos en Firestore
         await db.collection("cuadres").add(data);
@@ -471,6 +451,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('guardar-compartir-buttons').style.display = 'none';
         document.getElementById('cuadre-content').style.display = 'none';
         document.getElementById('cuadres-realizados-content').style.display = 'block';
+        mostrarCuadresRealizados();
     });
 
     // Mostrar datos de un cuadre específico
@@ -531,18 +512,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             setValue('total-depositar-banco-final', data.totalDepositarBanco);
             setValue('total-pedidos', data.totalPedidos);
             setValue('caja-chica-dia-siguiente', data.cajaChicaDiaSiguiente);
+            setValue('debe-ayer', data.debeAyer);
             setValue('cantidad-depositar', data.cantidadDepositar);
 
             // Update cuadro-datos fields
-            setValue('sucursal-final', data.sucursal);
-            setValue('fecha-hoy', data.fechaCuadre);
-            setValue('caja-chica-inicial-final', data.cajaChicaInicial);
+            setValue('fecha-cuadre-final', data.fechaCuadre);
             setValue('total-efectivo-final', data.totalEfectivo);
-            setValue('total-banco-final', data.totalTarjeta);
-            setValue('total-depositar-banco-final', data.totalDepositarBanco);
-            setValue('total-pedidos-final', data.totalPedidos);
-            setValue('caja-chica-dia-siguiente-final', data.cajaChicaDiaSiguiente);
-            setValue('cantidad-depositar', data.cantidadDepositar);
+            setValue('total-motorista-final', data.totalMotoristaAdmin);
+            setValue('total-tarjeta-final', data.totalTarjeta);
+            setValue('total-efectivo-completo', data.totalEfectivo + data.totalMotoristaAdmin);
+            setValue('total-tarjeta-completo', data.totalTarjeta);
+            setValue('total-venta-final', data.totalEfectivo + data.totalTarjeta);
+            setValue('total-gastos-final', data.totalGastos);
+            setValue('caja-chica-dia-siguiente', data.cajaChicaDiaSiguiente);
+            setValue('debe-ayer', data.debeAyer);
+            setValue('total-depositar-banco-final', data.totalEfectivo - data.totalGastos + data.debeAyer);
 
             document.getElementById('cuadre-content').style.display = 'block';
             document.getElementById('cuadres-realizados-content').style.display = 'none';
@@ -556,15 +540,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     window.cuadrarCuadre = async (id) => {
         await mostrarCuadre(id);
-    };
-
-    // Eliminar cuadre
-    window.eliminarCuadre = async (id) => {
-        if (confirm("¿Está seguro de que desea eliminar este cuadre?")) {
-            await db.collection("cuadres").doc(id).delete();
-            alert("Cuadre eliminado con éxito");
-            document.getElementById('cuadres-realizados-btn').click();
-        }
     };
 
     // Descargar cuadro de datos
@@ -601,6 +576,60 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById('cuadre-content').style.display = 'none';
         document.getElementById('cuadres-realizados-content').style.display = 'block';
     });
+
+    // Mostrar todos los cuadres realizados
+    const mostrarCuadresRealizados = async () => {
+        const cuadresTarjetas = document.getElementById('cuadres-tarjetas');
+        cuadresTarjetas.innerHTML = '';
+        const querySnapshot = await db.collection("cuadres").where("sucursal", "==", sucursal).orderBy("idCuadre", "desc").get();
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            const card = document.createElement('div');
+            card.className = 'cuadre-card';
+            card.innerHTML = `
+                <h3>ID Cuadre: ${data.idCuadre} - ${data.sucursal}</h3>
+                <p>Fecha: ${data.fechaCuadre}</p>
+                <p>Total Efectivo: ${data.totalEfectivo}</p>
+                <p>Total Tarjeta: ${data.totalTarjeta}</p>
+                <p>Total Motorista: ${data.totalMotoristaAdmin}</p>
+                <p>Total Pedidos Ya: ${data.totalPedidos}</p>
+                <button onclick="mostrarCuadre('${doc.id}')">Mostrar Cuadre</button>
+                <button onclick="descargarCuadro('${doc.id}')">Descargar Cuadro de Datos</button>
+            `;
+            cuadresTarjetas.appendChild(card);
+        });
+    };
+
+    // Función para filtrar cuadres por ID
+    window.filterCuadres = async () => {
+        const searchId = document.getElementById('search-id').value;
+        if (searchId) {
+            const querySnapshot = await db.collection("cuadres").where("sucursal", "==", sucursal).where("idCuadre", "==", parseInt(searchId)).get();
+            const cuadresTarjetas = document.getElementById('cuadres-tarjetas');
+            cuadresTarjetas.innerHTML = '';
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const card = document.createElement('div');
+                card.className = 'cuadre-card';
+                card.innerHTML = `
+                    <h3>ID Cuadre: ${data.idCuadre} - ${data.sucursal}</h3>
+                    <p>Fecha: ${data.fechaCuadre}</p>
+                    <p>Total Efectivo: ${data.totalEfectivo}</p>
+                    <p>Total Tarjeta: ${data.totalTarjeta}</p>
+                    <p>Total Motorista: ${data.totalMotoristaAdmin}</p>
+                    <p>Total Pedidos Ya: ${data.totalPedidos}</p>
+                    <button onclick="mostrarCuadre('${doc.id}')">Mostrar Cuadre</button>
+                    <button onclick="descargarCuadro('${doc.id}')">Descargar Cuadro de Datos</button>
+                `;
+                cuadresTarjetas.appendChild(card);
+            });
+        } else {
+            await mostrarCuadresRealizados();
+        }
+    };
+
+    // Inicializar mostrando los cuadres realizados
+    await mostrarCuadresRealizados();
 });
 
 // Función para agregar una fila de gasto
@@ -623,9 +652,22 @@ function addPedido() {
     const tableBody = document.getElementById("pedidos-tbody");
     const row = document.createElement("tr");
     row.innerHTML = `
-        <td><input type="text" data-type="ticket" required></td>
-        <td><input type="number" data-type="total-pedido" step="0.01" required></td>
+        <td><input type="number" data-type="total-pedido" step="0.01" oninput="updateTotals()" required></td>
     `;
     tableBody.insertBefore(row, tableBody.lastElementChild.previousElementSibling);
     updateTotals();
 }
+
+// Función para manejar el checkbox de "No se usa"
+window.noSeUsaHandler = (filaId) => {
+    const fila = document.getElementById(filaId);
+    const inputs = fila.querySelectorAll("input[type='number']");
+    inputs.forEach(input => input.value = 0);
+    updateTotals();
+};
+
+// Función para manejar el checkbox de "No se usa" en Pedidos Ya
+window.noSeUsaPedidosYa = () => {
+    document.querySelector("input[data-type='total-pedido']").value = 0;
+    updateTotals();
+};
