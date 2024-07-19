@@ -366,7 +366,7 @@ body {
   display: grid;
   min-height: 500px;
   padding: 20px;
-  background: var (--white);
+  background: var(--white);
   box-shadow: 0 7px 25px rgba(0, 0, 0, 0.08);
   border-radius: 20px;
 }
@@ -395,14 +395,14 @@ body {
 }
 .recentCustomers table tr td h4 span {
   font-size: 14px;
-  color: var (--black2);
+  color: var(--black2);
 }
 .recentCustomers table tr:hover {
-  background: var (--blue);
-  color: var (--white);
+  background: var(--blue);
+  color: var(--white);
 }
 .recentCustomers table tr:hover td h4 span {
-  color: var (--white);
+  color: var(--white);
 }
 
 /* ====================== Responsive Design ========================== */

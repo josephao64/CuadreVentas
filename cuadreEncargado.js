@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const date = new Date();
         const today = date.toISOString().split('T')[0];
         document.getElementById('fecha-cuadre').value = today;
-        document.getElementById('fecha-cuadre-final').value = today;
+        document.getElementById('fecha-cuadre').setAttribute('readonly', true); // Establecer como solo lectura
     };
 
     // Restablecer el formulario
@@ -56,10 +56,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (idCuadreField) idCuadreField.textContent = idCuadre;
     if (idCuadreFinalField) idCuadreFinalField.textContent = idCuadre;
 
+    // Function to update the fecha-cuadre-final when the fecha-cuadre input changes
+    window.updateFechaCuadroDatos = function() {
+        const fechaCuadreValue = document.getElementById('fecha-cuadre').value;
+        document.getElementById('fecha-cuadre-final').value = fechaCuadreValue;
+    };
+
     // Función para actualizar todos los totales
     window.updateTotals = function() {
         updateCajaTotals();
         updateGastos();
+        updatePedidos();
         updateDeposito();
         updateCuadroDatos();
     };
@@ -143,6 +150,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         setValue('total-gastos-final', totalGastos);
     }
 
+    // Función para actualizar los totales de los pedidos
+    function updatePedidos() {
+        const totalPedidos = parseFloat(document.getElementById('total-pedidos').value || 0);
+        setValue('total-pedidos-final', totalPedidos);
+    }
+
     // Función para actualizar el total a depositar
     function updateDeposito() {
         const totalEfectivoElems = ['caja1-total-efectivo', 'caja2-total-efectivo', 'caja3-total-efectivo'];
@@ -172,7 +185,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         setTextContent('nombre-sucursal-final', `${sucursal} - ${fechaCuadre}`);
         setTextContent('id-cuadre-final', idCuadre);
-        setValue('fecha-cuadre-final', fechaCuadre);
         setValue('caja-chica-inicial-final', cajaChicaInicial);
 
         const totalEfectivo = calculateTotal([{ id: 'caja1-total-efectivo' }, { id: 'caja2-total-efectivo' }, { id: 'caja3-total-efectivo' }]);
@@ -195,6 +207,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         setValue('caja-chica-dia-siguiente', cajaChicaDiaSiguiente);
         setValue('debe-ayer', debeAyer);
         setValue('total-depositar-banco-final', totalADepositar);
+        setValue('total-pedidos-final', totalPedidos);
+        setValue('fecha-cuadre-final', fechaCuadre);
     }
 
     // Función para establecer el contenido de texto de un elemento
@@ -340,7 +354,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Mostrar contenido de cuadre
     document.getElementById('realizar-cuadre-btn').addEventListener('click', async () => {
-        await resetForm();
+        await resetForm(); // Asegúrate de que el formulario se reinicie cada vez que se muestre
         document.getElementById('cuadre-content').style.display = 'block';
         document.getElementById('cuadres-realizados-content').style.display = 'none';
         const actionButtons = document.getElementById('action-buttons');
@@ -506,7 +520,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             setValue('cantidad-depositar', data.cantidadDepositar);
 
             // Update cuadro-datos fields
-            setValue('fecha-cuadre-final', data.fechaCuadre);
             setValue('total-efectivo-final', data.totalEfectivo);
             setValue('total-motorista-final', data.totalMotoristaAdmin);
             setValue('total-tarjeta-final', data.totalTarjeta);
@@ -517,6 +530,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             setValue('caja-chica-dia-siguiente', data.cajaChicaDiaSiguiente);
             setValue('debe-ayer', data.debeAyer);
             setValue('total-depositar-banco-final', data.totalEfectivo - data.totalGastos + data.debeAyer);
+            setValue('total-pedidos-final', data.totalPedidos);
+            setValue('fecha-cuadre-final', data.fechaCuadre);
 
             document.getElementById('cuadre-content').style.display = 'block';
             document.getElementById('cuadres-realizados-content').style.display = 'none';
@@ -583,6 +598,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <p>Total Tarjeta: ${data.totalTarjeta}</p>
                 <p>Total Motorista: ${data.totalMotoristaAdmin}</p>
                 <p>Total Pedidos Ya: ${data.totalPedidos}</p>
+                <p>Total Gastos: ${data.totalGastos}</p>
                 <button onclick="mostrarCuadre('${doc.id}')">Mostrar Cuadre</button>
                 <button onclick="descargarCuadro('${doc.id}')">Descargar Cuadro de Datos</button>
             `;
@@ -608,6 +624,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     <p>Total Tarjeta: ${data.totalTarjeta}</p>
                     <p>Total Motorista: ${data.totalMotoristaAdmin}</p>
                     <p>Total Pedidos Ya: ${data.totalPedidos}</p>
+                    <p>Total Gastos: ${data.totalGastos}</p>
                     <button onclick="mostrarCuadre('${doc.id}')">Mostrar Cuadre</button>
                     <button onclick="descargarCuadro('${doc.id}')">Descargar Cuadro de Datos</button>
                 `;
@@ -671,6 +688,7 @@ document.addEventListener("DOMContentLoaded", () => {
 window.updateTotals = function() {
     updateCajaTotals();
     updateGastos();
+    updatePedidos();
     updateDeposito();
     updateCuadroDatos();
 }
@@ -707,7 +725,6 @@ const resetForm = async () => {
     setDateToToday();
     unlockAllFields();
 };
-
 
 // Función para manejar el checkbox de "No se usa" en las cajas
 function noSeUsaHandler(filaId) {
