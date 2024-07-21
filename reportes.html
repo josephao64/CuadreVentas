@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reportes de Ventas</title>
+    <link rel="stylesheet" href="cuadreAdmi.css">
+    <style>
+        .section-content {
+            display: none;
+        }
+
+        .section-content.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 5px;
+            text-align: center;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBlKbvKBhm3EuOhGbKg7Z8DMToM23tRGsA",
+            authDomain: "sistemcuadresdb.firebaseapp.com",
+            projectId: "sistemcuadresdb",
+            storageBucket: "sistemcuadresdb.appspot.com",
+            messagingSenderId: "775560324749",
+            appId: "1:775560324749:web:27163f37ea9498b5a524c4"
+        };
+        firebase.initializeApp(firebaseConfig);
+    </script>
+</head>
+
+<body>
+    <div class="container" id="content">
+        <h1>Reportes de Ventas</h1>
+        <button id="ventas-efectivo-btn" class="main-button">Ventas Efectivo</button>
+        <button id="ventas-tarjeta-btn" class="main-button">Ventas Tarjeta</button>
+        <button id="ventas-motorista-btn" class="main-button">Ventas Motorista</button>
+        <button id="ventas-pedidos-ya-btn" class="main-button">Ventas Pedidos Ya</button>
+        <button id="gastos-btn" class="main-button">Gastos</button>
+        <button id="totales-btn" class="main-button">Totales por Cuadre</button>
+
+        <div id="ventas-efectivo-content" class="section-content">
+            <h2>Ventas Efectivo</h2>
+            <label for="filtro-sucursal-ventas-efectivo">Filtrar por Sucursal:</label>
+            <select id="filtro-sucursal-ventas-efectivo">
+                <option value="">Todas</option>
+                <option value="jalapa">Jalapa</option>
+                <option value="zacapa">Zacapa</option>
+                <option value="pinula">Pinula</option>
+                <option value="poptun">Poptún</option>
+                <option value="eskala">Eskala</option>
+                <option value="santa elena">Santa Elena</option>
+            </select>
+            <input type="text" id="search-id-ventas-efectivo" placeholder="Buscar por ID">
+            <input type="date" id="start-date-ventas-efectivo">
+            <input type="date" id="end-date-ventas-efectivo">
+            <button id="export-ventas-efectivo-pdf">Exportar a PDF</button>
+            <table id="ventas-efectivo-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Sucursal</th>
+                        <th>idCuadre</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody id="ventas-efectivo-resultados"></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">Total</td>
+                        <td id="ventas-efectivo-total-valor"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div id="ventas-tarjeta-content" class="section-content">
+            <h2>Ventas Tarjeta</h2>
+            <label for="filtro-sucursal-ventas-tarjeta">Filtrar por Sucursal:</label>
+            <select id="filtro-sucursal-ventas-tarjeta">
+                <option value="">Todas</option>
+                <option value="jalapa">Jalapa</option>
+                <option value="zacapa">Zacapa</option>
+                <option value="pinula">Pinula</option>
+                <option value="poptun">Poptún</option>
+                <option value="eskala">Eskala</option>
+                <option value="santa elena">Santa Elena</option>
+            </select>
+            <input type="text" id="search-id-ventas-tarjeta" placeholder="Buscar por ID">
+            <input type="date" id="start-date-ventas-tarjeta">
+            <input type="date" id="end-date-ventas-tarjeta">
+            <button id="export-ventas-tarjeta-pdf">Exportar a PDF</button>
+            <table id="ventas-tarjeta-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Sucursal</th>
+                        <th>idCuadre</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody id="ventas-tarjeta-resultados"></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">Total</td>
+                        <td id="ventas-tarjeta-total-valor"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div id="ventas-motorista-content" class="section-content">
+            <h2>Ventas Motorista</h2>
+            <label for="filtro-sucursal-ventas-motorista">Filtrar por Sucursal:</label>
+            <select id="filtro-sucursal-ventas-motorista">
+                <option value="">Todas</option>
+                <option value="jalapa">Jalapa</option>
+                <option value="zacapa">Zacapa</option>
+                <option value="pinula">Pinula</option>
+                <option value="poptun">Poptún</option>
+                <option value="eskala">Eskala</option>
+                <option value="santa elena">Santa Elena</option>
+            </select>
+            <input type="text" id="search-id-ventas-motorista" placeholder="Buscar por ID">
+            <input type="date" id="start-date-ventas-motorista">
+            <input type="date" id="end-date-ventas-motorista">
+            <button id="export-ventas-motorista-pdf">Exportar a PDF</button>
+            <table id="ventas-motorista-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Sucursal</th>
+                        <th>idCuadre</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody id="ventas-motorista-resultados"></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">Total</td>
+                        <td id="ventas-motorista-total-valor"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div id="ventas-pedidos-ya-content" class="section-content">
+            <h2>Ventas Pedidos Ya</h2>
+            <label for="filtro-sucursal-ventas-pedidos-ya">Filtrar por Sucursal:</label>
+            <select id="filtro-sucursal-ventas-pedidos-ya">
+                <option value="">Todas</option>
+                <option value="jalapa">Jalapa</option>
+                <option value="zacapa">Zacapa</option>
+                <option value="pinula">Pinula</option>
+                <option value="poptun">Poptún</option>
+                <option value="eskala">Eskala</option>
+                <option value="santa elena">Santa Elena</option>
+            </select>
+            <input type="text" id="search-id-ventas-pedidos-ya" placeholder="Buscar por ID">
+            <input type="date" id="start-date-ventas-pedidos-ya">
+            <input type="date" id="end-date-ventas-pedidos-ya">
+            <button id="export-ventas-pedidos-ya-pdf">Exportar a PDF</button>
+            <table id="ventas-pedidos-ya-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Sucursal</th>
+                        <th>idCuadre</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody id="ventas-pedidos-ya-resultados"></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">Total</td>
+                        <td id="ventas-pedidos-ya-total-valor"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div id="gastos-content" class="section-content">
+            <h2>Gastos</h2>
+            <label for="filtro-sucursal-gastos">Filtrar por Sucursal:</label>
+            <select id="filtro-sucursal-gastos">
+                <option value="">Todas</option>
+                <option value="jalapa">Jalapa</option>
+                <option value="zacapa">Zacapa</option>
+                <option value="pinula">Pinula</option>
+                <option value="poptun">Poptún</option>
+                <option value="eskala">Eskala</option>
+                <option value="santa elena">Santa Elena</option>
+            </select>
+            <input type="text" id="search-id-gastos" placeholder="Buscar por ID">
+            <input type="date" id="start-date-gastos">
+            <input type="date" id="end-date-gastos">
+            <button id="export-gastos-pdf">Exportar a PDF</button>
+            <table id="gastos-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Sucursal</th>
+                        <th>idCuadre</th>
+                        <th>Valor</th>
+                    </tr>
+                </thead>
+                <tbody id="gastos-resultados"></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">Total</td>
+                        <td id="gastos-total-valor"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div id="totales-content" class="section-content">
+            <h2>Totales por Cuadre</h2>
+            <table id="totales-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Sucursal</th>
+                        <th>idCuadre</th>
+                        <th>Total Efectivo</th>
+                        <th>Total Tarjeta</th>
+                        <th>Total Motorista</th>
+                        <th>Total Pedidos Ya</th>
+                        <th>Total Gastos</th>
+                    </tr>
+                </thead>
+                <tbody id="totales-resultados"></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3">Total General</td>
+                        <td id="totales-total-efectivo"></td>
+                        <td id="totales-total-tarjeta"></td>
+                        <td id="totales-total-motorista"></td>
+                        <td id="totales-total-pedidos"></td>
+                        <td id="totales-total-gastos"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+    <script src="cuadreAdmi.js"></script>
+    <script src="reportes.js"></script>
+</body>
+
+</html>

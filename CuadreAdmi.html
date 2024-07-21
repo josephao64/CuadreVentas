@@ -1,50 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cuadre de Ventas</title>
+    <title>Administración Cuadres</title>
     <link rel="stylesheet" href="cuadreAdmi.css">
-    <style>
-        .cuadre-card {
-            border: 1px solid black;
-            padding: 10px;
-            margin: 10px;
-        }
-
-        .cuadre-card button {
-            margin-top: 10px;
-        }
-
-        .section {
-            margin-bottom: 20px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid black;
-            padding: 5px;
-            text-align: center;
-        }
-
-        #cuadro-datos input {
-            width: 100%;
-            box-sizing: border-box;
-        }
-    </style>
+    <!-- Configuración de Firebase -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
-         const firebaseConfig = {
+        // Configuración de Firebase
+        const firebaseConfig = {
             apiKey: "AIzaSyBlKbvKBhm3EuOhGbKg7Z8DMToM23tRGsA",
             authDomain: "sistemcuadresdb.firebaseapp.com",
             projectId: "sistemcuadresdb",
@@ -52,549 +18,318 @@
             messagingSenderId: "775560324749",
             appId: "1:775560324749:web:27163f37ea9498b5a524c4"
         };
+        // Inicializar Firebase
         firebase.initializeApp(firebaseConfig);
     </script>
 </head>
-
 <body>
-    <div class="container" id="content">
-        <h1>Cuadre de Ventas</h1>
-        <button id="cuadres-realizados-btn" class="main-button">Cuadres Realizados</button>
-        <button id="nuevo-cuadre-btn" class="main-button">Crear Nuevo Cuadre</button>
-        <button id="ventas-efectivo-btn" class="main-button">Ventas Efectivo</button>
-        <button id="ventas-tarjeta-btn" class="main-button">Ventas Tarjeta</button>
-        <button id="ventas-motorista-btn" class="main-button">Ventas Motorista</button>
-        <button id="ventas-pedidos-ya-btn" class="main-button">Ventas Pedidos Ya</button>
-        <button id="gastos-btn" class="main-button">Gastos</button>
-        <button id="totales-btn" class="main-button">Totales por Cuadre</button>
-
-        <div id="cuadres-realizados-content" class="section-content" style="display: none;">
-            <h2>Cuadres Realizados</h2>
-            <div id="cuadres-tarjetas"></div>
+    <div class="container" id="main">
+        <!-- Botones principales para realizar cuadre y ver cuadres realizados -->
+        <div class="button-container">
+            <button id="realizar-cuadre-btn" class="main-button">Realizar Cuadre</button>
+            <button id="cuadres-realizados-btn" class="main-button">Cuadres Realizados</button>
         </div>
-
-        <div id="cuadre-content" class="section-content" style="display: none;">
-            <h2>Realizar Cuadre</h2>
-            <form id="cuadre-form">
-                <div class="section" id="sistema">
-                    <h2>SISTEMA</h2>
+        <!-- Contenido del cuadre, inicialmente oculto -->
+        <div id="cuadre-content" style="display: none;">
+            <div class="container" id="content">
+                <!-- Botones de acción, inicialmente ocultos -->
+                <div id="action-buttons" style="display: none;">
+                    <button id="cerrar-cuadre" class="main-button">Cerrar Cuadre</button>
+                    <button id="editar-cuadre" class="main-button">Editar Cuadre</button>
+                </div>
+                <h1>Cuadre Administración</h1>
+                <!-- Sección de información de cuadre -->
+                <div class="informacion-cuadre" id="informacion-cuadre">
+                    <h2>Información de Cuadre</h2>
+                    <div>
+                        <label for="id-cuadre">ID Cuadre:</label>
+                        <span id="id-cuadre"></span>
+                    </div>
+                    <div>
+                        <label for="sucursal">Seleccione su sucursal:</label>
+                        <select id="sucursal" name="sucursal" required>
+                            <option value="jalapa">Jalapa</option>
+                            <option value="zacapa">Zacapa</option>
+                            <option value="pinula">Pinula</option>
+                            <option value="poptun">Poptún</option>
+                            <option value="eskala">Eskala</option>
+                            <option value="santa elena">Santa Elena</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="caja-chica-inicial">Cantidad Caja Chica Inicial:</label>
+                        <input type="number" id="caja-chica-inicial" step="0.01" required>
+                    </div>
+                    <div>
+                        <label for="fecha-cuadre">Fecha de Cuadre:</label>
+                        <input type="date" id="fecha-cuadre" required oninput="updateFechaCuadroDatos()">
+                    </div>
+                    <!-- Botón para mostrar instrucciones -->
+                    <button id="instrucciones-info-btn">Instrucciones</button>
+                </div>
+                <!-- Tarjeta de instrucciones para la sección de información de cuadre -->
+                <div id="instrucciones-tarjeta-info" class="instrucciones-tarjeta">
+                    <h3>Instrucciones</h3>
+                    <p><strong>ID Cuadre:</strong> Número único que identifica cada cuadre, incrementa automáticamente.</p>
+                    <p><strong>Sucursal:</strong> Nombre de la sucursal.</p>
+                    <p><strong>Cantidad Caja Chica Inicial:</strong> Cantidad inicial en la caja chica al inicio del día.</p>
+                    <p><strong>Fecha de Cuadre:</strong> Fecha en la que se realiza el cuadre.</p>
+                    <button id="cerrar-instrucciones-info">Cerrar</button>
+                </div>
+                <!-- Sección de caja -->
+                <div class="section" id="caja">
+                    <h2>CAJA <button id="instrucciones-caja-btn">Instrucciones</button></h2>
+                    <!-- Tarjeta de instrucciones para la sección de caja -->
+                    <div id="instrucciones-tarjeta-caja" class="instrucciones-tarjeta">
+                        <h3>Instrucciones</h3>
+                        <p><strong>CAJA:</strong> Información de las ventas y efectivo en cada caja.</p>
+                        <p>Ingrese la cantidad de billetes para cada denominación y el sistema calculará el total.</p>
+                        <p>Al presionar "No se usa", todos los campos de esa fila se rellenarán con 0 automáticamente.</p>
+                        <button id="cerrar-instrucciones-caja">Cerrar</button>
+                    </div>
+                    <div class="table-wrapper">
+                        <table>
+                            <tr>
+                                <th>CAJA</th>
+                                <th>DE 100</th>
+                                <th>DE 50</th>
+                                <th>DE 20</th>
+                                <th>DE 10</th>
+                                <th>DE 5</th>
+                                <th>DE 1</th>
+                                <th>APERTURA DE CAJA</th>
+                                <th>TOTAL EFECTIVO</th>
+                                <th>TARJETA</th>
+                                <th>MOTORISTA</th>
+                                <th>TOTAL VENTA CAJERO</th>
+                                <th>NO SE USA</th>
+                            </tr>
+                            <!-- Fila de datos para la caja 1 -->
+                            <tr id="fila-caja1">
+                                <td>CAJA 1</td>
+                                <td><input type="number" id="caja1-100" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja1-50" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja1-20" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja1-10" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja1-5" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja1-1" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja1-apertura" step="0.01" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja1-total-efectivo" readonly></td>
+                                <td><input type="number" id="caja1-tarjeta-admin" step="0.01" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja1-motorista-admin" step="0.01" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja1-total-venta-cajero" readonly></td>
+                                <td><input type="checkbox" id="caja1-no-se-usa" onchange="noSeUsaHandler('fila-caja1')"></td>
+                            </tr>
+                            <!-- Fila de datos para la caja 2 -->
+                            <tr id="fila-caja2">
+                                <td>CAJA 2</td>
+                                <td><input type="number" id="caja2-100" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja2-50" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja2-20" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja2-10" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja2-5" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja2-1" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja2-apertura" step="0.01" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja2-total-efectivo" readonly></td>
+                                <td><input type="number" id="caja2-tarjeta-admin" step="0.01" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja2-motorista-admin" step="0.01" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja2-total-venta-cajero" readonly></td>
+                                <td><input type="checkbox" id="caja2-no-se-usa" onchange="noSeUsaHandler('fila-caja2')"></td>
+                            </tr>
+                            <!-- Fila de datos para la caja 3 -->
+                            <tr id="fila-caja3">
+                                <td>CAJA 3</td>
+                                <td><input type="number" id="caja3-100" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja3-50" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja3-20" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja3-10" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja3-5" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja3-1" step="1" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja3-apertura" step="0.01" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja3-total-efectivo" readonly></td>
+                                <td><input type="number" id="caja3-tarjeta-admin" step="0.01" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja3-motorista-admin" step="0.01" oninput="updateTotals()" required></td>
+                                <td><input type="number" id="caja3-total-venta-cajero" readonly></td>
+                                <td><input type="checkbox" id="caja3-no-se-usa" onchange="noSeUsaHandler('fila-caja3')"></td>
+                            </tr>
+                            <!-- Fila de totales -->
+                            <tr>
+                                <td>TOTAL</td>
+                                <td><input type="number" id="total-100" readonly></td>
+                                <td><input type="number" id="total-50" readonly></td>
+                                <td><input type="number" id="total-20" readonly></td>
+                                <td><input type="number" id="total-10" readonly></td>
+                                <td><input type="number" id="total-5" readonly></td>
+                                <td><input type="number" id="total-1" readonly></td>
+                                <td><input type="number" id="total-apertura" readonly></td>
+                                <td><input type="number" id="total-efectivo" readonly></td>
+                                <td><input type="number" id="total-tarjeta" readonly></td>
+                                <td><input type="number" id="total-motorista-admin" readonly></td>
+                                <td><input type="number" id="total-venta-cajero" readonly></td>
+                                <td></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="horizontal-sections">
+                    <!-- Sección de gastos -->
+                    <div class="section" id="gastos">
+                        <h2>GASTOS <button id="instrucciones-gastos-btn">Instrucciones</button></h2>
+                        <!-- Tarjeta de instrucciones para la sección de gastos -->
+                        <div id="instrucciones-tarjeta-gastos" class="instrucciones-tarjeta">
+                            <h3>Instrucciones</h3>
+                            <p><strong>GASTOS:</strong> Información detallada de los gastos realizados.</p>
+                            <button id="cerrar-instrucciones-gastos">Cerrar</button>
+                        </div>
+                        <table id="gastos-table">
+                            <thead>
+                                <tr>
+                                    <th>CANTIDAD</th>
+                                    <th>DESCRIPCIÓN</th>
+                                    <th>No.FACTURA</th>
+                                    <th>PRECIO UNITARIO</th>
+                                    <th>TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gastos-tbody">
+                                <!-- Fila de entrada de datos para un gasto -->
+                                <tr>
+                                    <td><input type="number" data-type="cantidad" step="0.01" oninput="updateTotals()" required></td>
+                                    <td><input type="text" data-type="descripcion" oninput="updateTotals()" required></td>
+                                    <td><input type="text" data-type="factura" oninput="updateTotals()" required></td>
+                                    <td><input type="number" data-type="precio-unitario" step="0.01" oninput="updateTotals()" required></td>
+                                    <td><input type="number" data-type="total" readonly></td>
+                                </tr>
+                                <!-- Fila de total de gastos -->
+                                <tr>
+                                    <td colspan="4">TOTAL GASTOS</td>
+                                    <td><input type="number" id="total-gastos" readonly></td>
+                                </tr>
+                                <!-- Botón para agregar más filas de gastos -->
+                                <tr>
+                                    <td colspan="5"><button type="button" onclick="addGasto()">Agregar Gasto</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Sección de Pedidos Ya -->
+                    <div class="section" id="pedidos-ya">
+                        <h2>PEDIDOS YA <button id="instrucciones-pedidos-btn">Instrucciones</button></h2>
+                        <!-- Tarjeta de instrucciones para la sección de Pedidos Ya -->
+                        <div id="instrucciones-tarjeta-pedidos" class="instrucciones-tarjeta">
+                            <h3>Instrucciones</h3>
+                            <p><strong>PEDIDOS YA:</strong> Ingrese el total de todos los tickets generados por el POS de Pedidos Ya.</p>
+                            <button id="cerrar-instrucciones-pedidos">Cerrar</button>
+                        </div>
+                        <table id="pedidos-table">
+                            <thead>
+                                <tr>
+                                    <th>TOTAL</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pedidos-tbody">
+                                <!-- Fila de entrada de datos para un pedido -->
+                                <tr>
+                                    <td><input type="number" data-type="total-pedido" step="0.01" id="total-pedidos" oninput="updateTotals()" required></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <!-- Checkbox para indicar si no se usa el servicio de Pedidos Ya -->
+                        <label for="pedidos-ya-no-se-usa">No se usa el servicio</label>
+                        <input type="checkbox" id="pedidos-ya-no-se-usa" onchange="noSeUsaPedidosYa()">
+                    </div>
+                </div>
+                <!-- Sección final para mostrar el cuadro de datos completos -->
+                <div class="section" id="cuadro-datos" style="border: 1px solid black; padding: 10px;">
+                    <h2 id="nombre-sucursal-final"></h2>
                     <table>
                         <tr>
-                            <th>CAJA</th>
-                            <th>VENTA EFECTIVO</th>
-                            <th>VENTA TARJETA</th>
-                            <th>MOTORISTA</th>
-                            <th>TOTAL</th>
-                        </tr>
-                        <tr>
-                            <td>CAJA 1</td>
-                            <td><input type="number" id="caja1-venta-efectivo" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja1-venta-tarjeta" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja1-motorista" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja1-venta-total" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>CAJA 2</td>
-                            <td><input type="number" id="caja2-venta-efectivo" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja2-venta-tarjeta" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja2-motorista" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja2-venta-total" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>CAJA 3</td>
-                            <td><input type="number" id="caja3-venta-efectivo" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja3-venta-tarjeta" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja3-motorista" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja3-venta-total" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>TOTAL</td>
-                            <td><input type="number" id="total-venta-efectivo" readonly></td>
-                            <td><input type="number" id="total-venta-tarjeta" readonly></td>
-                            <td><input type="number" id="total-motorista" readonly></td>
-                            <td><input type="number" id="total-sistema" readonly></td>
+                            <td>ID Cuadre</td>
+                            <td><span id="id-cuadre-final"></span></td>
                         </tr>
                     </table>
-                </div>
-                <div class="section" id="control-administrativo">
-                    <h2>CAJA</h2>
-                    <table>
-                        <tr>
-                            <th>CAJA</th>
-                            <th>DE 100</th>
-                            <th>DE 50</th>
-                            <th>DE 20</th>
-                            <th>DE 10</th>
-                            <th>DE 5</th>
-                            <th>DE 1</th>
-                            <th>APERTURA DE CAJA</th>
-                            <th>TOTAL EFECTIVO</th>
-                            <th>TARJETA</th>
-                            <th>MOTORISTA</th>
-                            <th>TOTAL VENTA CAJERO</th>
-                        </tr>
-                        <tr>
-                            <td>CAJA 1</td>
-                            <td><input type="number" id="caja1-100" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja1-50" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja1-20" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja1-10" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja1-5" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja1-1" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja1-apertura" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja1-total-efectivo" readonly></td>
-                            <td><input type="number" id="caja1-tarjeta-admin" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja1-motorista-admin" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja1-total-venta-cajero" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>CAJA 2</td>
-                            <td><input type="number" id="caja2-100" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja2-50" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja2-20" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja2-10" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja2-5" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja2-1" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja2-apertura" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja2-total-efectivo" readonly></td>
-                            <td><input type="number" id="caja2-tarjeta-admin" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja2-motorista-admin" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja2-total-venta-cajero" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>CAJA 3</td>
-                            <td><input type="number" id="caja3-100" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja3-50" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja3-20" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja3-10" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja3-5" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja3-1" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja3-apertura" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja3-total-efectivo" readonly></td>
-                            <td><input type="number" id="caja3-tarjeta-admin" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja3-motorista-admin" step="0.01" oninput="updateTotals()"></td>
-                            <td><input type="number" id="caja3-total-venta-cajero" readonly></td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="section" id="encargado">
-                    <h2>ENCARGADO</h2>
-                    <table>
-                        <tr>
-                            <th>CAJA</th>
-                            <th>VENTA EFECTIVO</th>
-                            <th>VENTA TARJETA</th>
-                            <th>MOTORISTA</th>
-                            <th>TOTAL</th>
-                        </tr>
-                        <tr>
-                            <td>CAJA 1</td>
-                            <td><input type="number" id="encargado-caja1-venta-efectivo" readonly></td>
-                            <td><input type="number" id="encargado-caja1-venta-tarjeta" readonly></td>
-                            <td><input type="number" id="encargado-caja1-motorista" readonly></td>
-                            <td><input type="number" id="encargado-caja1-total" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>CAJA 2</td>
-                            <td><input type="number" id="encargado-caja2-venta-efectivo" readonly></td>
-                            <td><input type="number" id="encargado-caja2-venta-tarjeta" readonly></td>
-                            <td><input type="number" id="encargado-caja2-motorista" readonly></td>
-                            <td><input type="number" id="encargado-caja2-total" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>CAJA 3</td>
-                            <td><input type="number" id="encargado-caja3-venta-efectivo" readonly></td>
-                            <td><input type="number" id="encargado-caja3-venta-tarjeta" readonly></td>
-                            <td><input type="number" id="encargado-caja3-motorista" readonly></td>
-                            <td><input type="number" id="encargado-caja3-total" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>TOTAL</td>
-                            <td><input type="number" id="total-encargado-venta-efectivo" readonly></td>
-                            <td><input type="number" id="total-encargado-venta-tarjeta" readonly></td>
-                            <td><input type="number" id="total-encargado-motorista" readonly></td>
-                            <td><input type="number" id="total-encargado" readonly></td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="section" id="diferencia">
-                    <h2>DIFERENCIA</h2>
-                    <table>
-                        <tr>
-                            <th>CAJA</th>
-                            <th>DIFERENCIA EFECTIVO</th>
-                            <th>DIFERENCIA TARJETA</th>
-                            <th>DIFERENCIA MOTORISTA</th>
-                            <th>DIFERENCIA TOTAL</th>
-                        </tr>
-                        <tr>
-                            <td>CAJA 1</td>
-                            <td><input type="number" id="diferencia-caja1-efectivo" readonly></td>
-                            <td><input type="number" id="diferencia-caja1-tarjeta" readonly></td>
-                            <td><input type="number" id="diferencia-caja1-motorista" readonly></td>
-                            <td><input type="number" id="diferencia-caja1-total" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>CAJA 2</td>
-                            <td><input type="number" id="diferencia-caja2-efectivo" readonly></td>
-                            <td><input type="number" id="diferencia-caja2-tarjeta" readonly></td>
-                            <td><input type="number" id="diferencia-caja2-motorista" readonly></td>
-                            <td><input type="number" id="diferencia-caja2-total" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>CAJA 3</td>
-                            <td><input type="number" id="diferencia-caja3-efectivo" readonly></td>
-                            <td><input type="number" id="diferencia-caja3-tarjeta" readonly></td>
-                            <td><input type="number" id="diferencia-caja3-motorista" readonly></td>
-                            <td><input type="number" id="diferencia-caja3-total" readonly></td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="section" id="gastos">
-                    <h2>GASTOS</h2>
-                    <table id="gastos-table">
-                        <thead>
-                            <tr>
-                                <th>CANTIDAD</th>
-                                <th>DESCRIPCIÓN</th>
-                                <th>No.FACTURA</th>
-                                <th>PRECIO UNITARIO</th>
-                                <th>TOTAL</th>
-                            </tr>
-                        </thead>
-                        <tbody id="gastos-tbody">
-                            <tr>
-                                <td><input type="number" data-type="cantidad" step="0.01" oninput="updateGastosTotals()" required></td>
-                                <td><input type="text" data-type="descripcion" oninput="updateGastosTotals()" required></td>
-                                <td><input type="text" data-type="factura" oninput="updateGastosTotals()" required></td>
-                                <td><input type="number" data-type="precio-unitario" step="0.01" oninput="updateGastosTotals()" required></td>
-                                <td><input type="number" data-type="total" readonly></td>
-                            </tr>
-                            <tr>
-                                <td colspan="4">TOTAL GASTOS</td>
-                                <td><input type="number" id="total-gastos" readonly></td>
-                            </tr>
-                            <tr>
-                                <td colspan="5"><button type="button" onclick="addGasto()">Agregar Gasto</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="section" id="pedidos-ya">
-                    <h2>PEDIDOS YA</h2>
-                    <table id="pedidos-table">
-                        <thead>
-                            <tr>
-                                <th>TOTAL</th>
-                            </tr>
-                        </thead>
-                        <tbody id="pedidos-tbody">
-                            <tr>
-                                <td><input type="number" data-type="total-pedido" step="0.01" id="total-pedidos" oninput="updateTotals()" required></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <label for="pedidos-ya-no-se-usa">No se usa el servicio</label>
-                    <input type="checkbox" id="pedidos-ya-no-se-usa" onchange="noSeUsaPedidosYa()">
-                </div>
-                <div class="section" id="cuadro-datos">
-                    <h2><input type="text" id="nombre-sucursal" placeholder="NOMBRE SUCURSAL"></h2>
-                    <table>
-                        <tr>
-                            <td>FECHA HOY</td>
-                            <td><input type="date" id="fecha-hoy"></td>
-                        </tr>
-                        <tr>
-                            <td>ID CUADRE</td>
-                            <td><input type="text" id="id-cuadre" readonly></td>
-                        </tr>
-                    </table>
-                    <h2>Ventas total Sistema</h2>
+                    <h2>Totales</h2>
                     <table>
                         <tr>
                             <td>Venta efectivo</td>
-                            <td><input type="number" id="venta-efectivo-cuadro" readonly></td>
+                            <td><input type="number" id="total-efectivo-final" readonly></td>
                         </tr>
                         <tr>
-                            <td>Venta Tarjeta</td>
-                            <td><input type="number" id="venta-tarjeta-cuadro" readonly></td>
+                            <td>Venta motorista</td>
+                            <td><input type="number" id="total-motorista-final" readonly></td>
                         </tr>
                         <tr>
-                            <td>Motorista</td>
-                            <td><input type="number" id="motorista-cuadro" readonly></td>
+                            <td>Venta tarjeta</td>
+                            <td><input type="number" id="total-tarjeta-final" readonly></td>
                         </tr>
                         <tr>
-                            <td>Total</td>
-                            <td><input type="number" id="total-cuadro" readonly></td>
+                            <td>PEDIDOS YA</td>
+                            <td><input type="number" id="total-pedidos-final" readonly></td>
                         </tr>
-                    </table>
-                    <h2>Control Administrativo</h2>
-                    <table>
+                        <tr class="total-row">
+                            <td>Total Efectivo</td>
+                            <td><input type="number" id="total-efectivo-completo" readonly></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>Total Tarjeta</td>
+                            <td><input type="number" id="total-tarjeta-completo" readonly></td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>Total Venta</td>
+                            <td><input type="number" id="total-venta-final" readonly></td>
+                        </tr>
+                        <tr>
+                            <td>GASTOS</td>
+                            <td><input type="number" id="total-gastos-final" readonly></td>
+                        </tr>
+                        <tr>
+                            <td>CAJA CHICA</td>
+                            <td><input type="number" id="caja-chica-dia-siguiente" readonly></td>
+                        </tr>
                         <tr>
                             <td>Debe de ayer</td>
-                            <td><input type="number" id="debe-ayer" step="0.01" oninput="updateTotals()"></td>
+                            <td><input type="number" id="debe-ayer"></td>
                         </tr>
-                        <tr>
-                            <td>Caja Chica</td>
-                            <td><input type="number" id="caja-chica" step="0.01" oninput="updateTotals()"></td>
-                        </tr>
-                        <tr>
-                            <td>Venta efectivo</td>
-                            <td><input type="number" id="venta-efectivo-admin" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>Venta Tarjeta</td>
-                            <td><input type="number" id="venta-tarjeta-admin" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>Total efectivo</td>
-                            <td><input type="number" id="total-efectivo-admin" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>Motorista</td>
-                            <td><input type="number" id="motorista-cuadro-admin" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>(-) Gastos</td>
-                            <td><input type="number" id="gastos-cuadro" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>Sobrante</td>
-                            <td><input type="number" id="sobrante-cuadro" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>Total a depositar</td>
-                            <td><input type="number" id="total-depositar-cuadro" readonly></td>
+                        <tr class="total-row">
+                            <td>Total a Depositar</td>
+                            <td><input type="number" id="total-depositar-banco-final" readonly></td>
                         </tr>
                     </table>
-                    <h2>Diferencia</h2>
-                    <table>
-                        <tr>
-                            <td>Diferencia Efectivo</td>
-                            <td><input type="number" id="diferencia-efectivo-cuadro" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>Diferencia Tarjeta</td>
-                            <td><input type="number" id="diferencia-tarjeta-cuadro" readonly></td>
-                        </tr>
-                        <tr>
-                            <td>Diferencia Total</td>
-                            <td><input type="number" id="diferencia-total-cuadro" readonly></td>
-                        </tr>
-                    </table>
-                    <h2>Comentarios</h2>
-                    <textarea id="comentarios-cuadro" rows="4" cols="50" placeholder="Ingrese sus comentarios aquí..."></textarea>
                 </div>
-            </form>
-            <button id="cerrar-cuadre-btn">Cerrar Cuadre</button>
-            <button id="download-cuadro-img">Descargar CUADRO DE DATOS en Imagen</button>
+                <!-- Botones para guardar y confirmar el cuadre -->
+                <button id="guardar-cuadre">Guardar Cuadre</button>
+                <button id="confirmar-cuadre-btn" style="display: none;">Confirmar Cuadre</button>
+                <!-- Modal para confirmar el cuadre -->
+                <div id="confirmar-cuadre" class="modal">
+                    <div class="modal-content">
+                        <h3>Revisar y Confirmar Cuadre</h3>
+                        <button id="cerrar-confirmar-cuadre-btn">Cerrar</button>
+                    </div>
+                </div>
+                <!-- Modal para guardar y compartir el cuadro de datos -->
+                <div id="guardar-compartir-buttons" class="modal">
+                    <div class="modal-content">
+                        <h3>Cuadre Guardado</h3>
+                        <button id="guardar-cuadro-datos">Guardar Cuadro de Datos</button>
+                        <button id="compartir-cuadro-datos">Compartir Cuadro de Datos</button>
+                        <button id="cerrar-guardar-compartir">Cerrar</button>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <div id="ventas-efectivo-content" class="section-content" style="display: none;">
-            <h2>Ventas Efectivo</h2>
-            <label for="filtro-sucursal-ventas-efectivo">Filtrar por Sucursal:</label>
-            <select id="filtro-sucursal-ventas-efectivo">
-                <option value="">Todas</option>
-                <option value="jalapa">Jalapa</option>
-                <option value="zacapa">Zacapa</option>
-                <option value="pinula">Pinula</option>
-                <option value="poptun">Poptún</option>
-                <option value="eskala">Eskala</option>
-                <option value="santa elena">Santa Elena</option>
-            </select>
-            <input type="text" id="search-id-ventas-efectivo" placeholder="Buscar por ID">
-            <input type="date" id="start-date-ventas-efectivo">
-            <input type="date" id="end-date-ventas-efectivo">
-            <button id="export-ventas-efectivo-pdf">Exportar a PDF</button>
-            <table id="ventas-efectivo-table">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Sucursal</th>
-                        <th>idCuadre</th>
-                        <th>Valor</th>
-                    </tr>
-                </thead>
-                <tbody id="ventas-efectivo-resultados"></tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3">Total</td>
-                        <td id="ventas-efectivo-total-valor"></td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-
-        <div id="ventas-tarjeta-content" class="section-content" style="display: none;">
-            <h2>Ventas Tarjeta</h2>
-            <label for="filtro-sucursal-ventas-tarjeta">Filtrar por Sucursal:</label>
-            <select id="filtro-sucursal-ventas-tarjeta">
-                <option value="">Todas</option>
-                <option value="jalapa">Jalapa</option>
-                <option value="zacapa">Zacapa</option>
-                <option value="pinula">Pinula</option>
-                <option value="poptun">Poptún</option>
-                <option value="eskala">Eskala</option>
-                <option value="santa elena">Santa Elena</option>
-            </select>
-            <input type="text" id="search-id-ventas-tarjeta" placeholder="Buscar por ID">
-            <input type="date" id="start-date-ventas-tarjeta">
-            <input type="date" id="end-date-ventas-tarjeta">
-            <button id="export-ventas-tarjeta-pdf">Exportar a PDF</button>
-            <table id="ventas-tarjeta-table">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Sucursal</th>
-                        <th>idCuadre</th>
-                        <th>Valor</th>
-                    </tr>
-                </thead>
-                <tbody id="ventas-tarjeta-resultados"></tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3">Total</td>
-                        <td id="ventas-tarjeta-total-valor"></td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-
-        <div id="ventas-motorista-content" class="section-content" style="display: none;">
-            <h2>Ventas Motorista</h2>
-            <label for="filtro-sucursal-ventas-motorista">Filtrar por Sucursal:</label>
-            <select id="filtro-sucursal-ventas-motorista">
-                <option value="">Todas</option>
-                <option value="jalapa">Jalapa</option>
-                <option value="zacapa">Zacapa</option>
-                <option value="pinula">Pinula</option>
-                <option value="poptun">Poptún</option>
-                <option value="eskala">Eskala</option>
-                <option value="santa elena">Santa Elena</option>
-            </select>
-            <input type="text" id="search-id-ventas-motorista" placeholder="Buscar por ID">
-            <input type="date" id="start-date-ventas-motorista">
-            <input type="date" id="end-date-ventas-motorista">
-            <button id="export-ventas-motorista-pdf">Exportar a PDF</button>
-            <table id="ventas-motorista-table">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Sucursal</th>
-                        <th>idCuadre</th>
-                        <th>Valor</th>
-                    </tr>
-                </thead>
-                <tbody id="ventas-motorista-resultados"></tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3">Total</td>
-                        <td id="ventas-motorista-total-valor"></td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-
-        <div id="ventas-pedidos-ya-content" class="section-content" style="display: none;">
-            <h2>Ventas Pedidos Ya</h2>
-            <label for="filtro-sucursal-ventas-pedidos-ya">Filtrar por Sucursal:</label>
-            <select id="filtro-sucursal-ventas-pedidos-ya">
-                <option value="">Todas</option>
-                <option value="jalapa">Jalapa</option>
-                <option value="zacapa">Zacapa</option>
-                <option value="pinula">Pinula</option>
-                <option value="poptun">Poptún</option>
-                <option value="eskala">Eskala</option>
-                <option value="santa elena">Santa Elena</option>
-            </select>
-            <input type="text" id="search-id-ventas-pedidos-ya" placeholder="Buscar por ID">
-            <input type="date" id="start-date-ventas-pedidos-ya">
-            <input type="date" id="end-date-ventas-pedidos-ya">
-            <button id="export-ventas-pedidos-ya-pdf">Exportar a PDF</button>
-            <table id="ventas-pedidos-ya-table">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Sucursal</th>
-                        <th>idCuadre</th>
-                        <th>Valor</th>
-                    </tr>
-                </thead>
-                <tbody id="ventas-pedidos-ya-resultados"></tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3">Total</td>
-                        <td id="ventas-pedidos-ya-total-valor"></td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-
-        <div id="gastos-content" class="section-content" style="display: none;">
-            <h2>Gastos</h2>
-            <label for="filtro-sucursal-gastos">Filtrar por Sucursal:</label>
-            <select id="filtro-sucursal-gastos">
-                <option value="">Todas</option>
-                <option value="jalapa">Jalapa</option>
-                <option value="zacapa">Zacapa</option>
-                <option value="pinula">Pinula</option>
-                <option value="poptun">Poptún</option>
-                <option value="eskala">Eskala</option>
-                <option value="santa elena">Santa Elena</option>
-            </select>
-            <input type="text" id="search-id-gastos" placeholder="Buscar por ID">
-            <input type="date" id="start-date-gastos">
-            <input type="date" id="end-date-gastos">
-            <button id="export-gastos-pdf">Exportar a PDF</button>
-            <table id="gastos-table">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Sucursal</th>
-                        <th>idCuadre</th>
-                        <th>Valor</th>
-                    </tr>
-                </thead>
-                <tbody id="gastos-resultados"></tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3">Total</td>
-                        <td id="gastos-total-valor"></td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-
-        <div id="totales-content" class="section-content" style="display: none;">
-            <h2>Totales por Cuadre</h2>
-            <table id="totales-table">
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Sucursal</th>
-                        <th>idCuadre</th>
-                        <th>Total Efectivo</th>
-                        <th>Total Tarjeta</th>
-                        <th>Total Motorista</th>
-                        <th>Total Pedidos Ya</th>
-                        <th>Total Gastos</th>
-                    </tr>
-                </thead>
-                <tbody id="totales-resultados"></tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="3">Total General</td>
-                        <td id="totales-total-efectivo"></td>
-                        <td id="totales-total-tarjeta"></td>
-                        <td id="totales-total-motorista"></td>
-                        <td id="totales-total-pedidos"></td>
-                        <td id="totales-total-gastos"></td>
-                    </tr>
-                </tfoot>
-            </table>
+        <!-- Sección de cuadres realizados -->
+        <div id="cuadres-realizados-content" style="display: none;">
+            <h2>Cuadres Realizados</h2>
+            <div class="search-container">
+                <label for="search-id">Buscar por ID:</label>
+                <input type="text" id="search-id" placeholder="Ingrese ID de Cuadre" oninput="filterCuadres()">
+            </div>
+            <div id="cuadres-sucursales"></div>
         </div>
     </div>
+    <!-- Librerías para generación de PDF e imágenes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="cuadreAdmi.js"></script>
 </body>
-
 </html>
